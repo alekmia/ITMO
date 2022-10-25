@@ -1,5 +1,5 @@
 # 2 Semester HWs
-## consists of
+## Consists of
 1. Java HWs
 2. JavaScript HWs
 3. Clojure HWs
