@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | This module defines 'ListZipper' datatype.</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- Feel free to define additional helper functions to work</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- with this datatype in this module.</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.ListZipper</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier">ListZipper</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.ListZipper.html#lLeft"><span class="hs-identifier">lLeft</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.ListZipper.html#lRight"><span class="hs-identifier">lRight</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.ListZipper.html#lWrite"><span class="hs-identifier">lWrite</span></a></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.ListZipper.html#toList"><span class="hs-identifier">toList</span></a></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.ListZipper.html#lGenerator"><span class="hs-identifier">lGenerator</span></a></span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Comonad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Comonad</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- | Stores two arrays and an element between them for easy access </span><span>
+</span><span id="line-16"></span><span class="hs-keyword">data</span><span> </span><span id="ListZipper"><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-var">ListZipper</span></a></span></span><span> </span><span id="local-6989586621679058204"><span class="annot"><a href="#local-6989586621679058204"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="LZ"><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-var">LZ</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679058204"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="#local-6989586621679058204"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679058204"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679058167"><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-19"></span><span>  </span><span id="local-6989586621679058165"><span class="annot"><span class="annottext">fmap :: (a -&gt; b) -&gt; ListZipper a -&gt; ListZipper b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></span></span><span> </span><span id="local-6989586621679058164"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679058164"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-type">LZ</span></a></span><span> </span><span id="local-6989586621679058163"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058163"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span id="local-6989586621679058162"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058162"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679058161"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058161"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[b] -&gt; b -&gt; [b] -&gt; ListZipper b
+forall a. [a] -&gt; a -&gt; [a] -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-var">LZ</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; [a] -&gt; [b]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679058164"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058163"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679058164"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058162"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; [a] -&gt; [b]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679058164"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058161"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679058156"><span class="annot"><span class="hs-identifier hs-type">Comonad</span></span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>  </span><span id="local-6989586621679058154"><span class="annot"><span class="annottext">extract :: ListZipper a -&gt; a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">extract</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-type">LZ</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679058152"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058152"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058152"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>  </span><span id="local-6989586621679058151"><span class="annot"><span class="annottext">duplicate :: ListZipper a -&gt; ListZipper (ListZipper a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">duplicate</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ListZipper a -&gt; ListZipper a)
+-&gt; (ListZipper a -&gt; ListZipper a)
+-&gt; ListZipper a
+-&gt; ListZipper (ListZipper a)
+forall a. (a -&gt; a) -&gt; (a -&gt; a) -&gt; a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lGenerator"><span class="hs-identifier hs-var">lGenerator</span></a></span><span> </span><span class="annot"><span class="annottext">ListZipper a -&gt; ListZipper a
+forall a. ListZipper a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lLeft"><span class="hs-identifier hs-var">lLeft</span></a></span><span> </span><span class="annot"><span class="annottext">ListZipper a -&gt; ListZipper a
+forall a. ListZipper a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lRight"><span class="hs-identifier hs-var">lRight</span></a></span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- | Shift the LZ left or right, making it store a new element</span><span>
+</span><span id="line-27"></span><span id="local-6989586621679058190"><span class="annot"><a href="Data.ListZipper.html#lLeft"><span class="hs-identifier hs-type">lLeft</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.ListZipper.html#lRight"><span class="hs-identifier hs-type">lRight</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058190"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058190"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-28"></span><span id="lLeft"><span class="annot"><span class="annottext">lLeft :: ListZipper a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lLeft"><span class="hs-identifier hs-var hs-var">lLeft</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-type">LZ</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058149"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058149"><span class="hs-identifier hs-var">l</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679058148"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058148"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679058147"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058147"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679058146"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058146"><span class="hs-identifier hs-var">rs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; a -&gt; [a] -&gt; ListZipper a
+forall a. [a] -&gt; a -&gt; [a] -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-var">LZ</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058148"><span class="hs-identifier hs-var">ls</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058149"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058147"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058146"><span class="hs-identifier hs-var">rs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="annot"><a href="Data.ListZipper.html#lLeft"><span class="hs-identifier hs-var">lLeft</span></a></span><span> </span><span id="local-6989586621679058145"><span class="annot"><span class="annottext">ListZipper a
+</span><a href="#local-6989586621679058145"><span class="hs-identifier hs-var">lz</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListZipper a
+</span><a href="#local-6989586621679058145"><span class="hs-identifier hs-var">lz</span></a></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span id="lRight"><span class="annot"><span class="annottext">lRight :: ListZipper a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lRight"><span class="hs-identifier hs-var hs-var">lRight</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-type">LZ</span></a></span><span> </span><span id="local-6989586621679058144"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058144"><span class="hs-identifier hs-var">ls</span></a></span></span><span> </span><span id="local-6989586621679058143"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058143"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058142"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058142"><span class="hs-identifier hs-var">r</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679058141"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058141"><span class="hs-identifier hs-var">rs</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; a -&gt; [a] -&gt; ListZipper a
+forall a. [a] -&gt; a -&gt; [a] -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-var">LZ</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058143"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058144"><span class="hs-identifier hs-var">ls</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058142"><span class="hs-identifier hs-var">r</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058141"><span class="hs-identifier hs-var">rs</span></a></span><span>
+</span><span id="line-32"></span><span class="annot"><a href="Data.ListZipper.html#lRight"><span class="hs-identifier hs-var">lRight</span></a></span><span> </span><span id="local-6989586621679058140"><span class="annot"><span class="annottext">ListZipper a
+</span><a href="#local-6989586621679058140"><span class="hs-identifier hs-var">lz</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ListZipper a
+</span><a href="#local-6989586621679058140"><span class="hs-identifier hs-var">lz</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- | Change the stored element</span><span>
+</span><span id="line-35"></span><span id="local-6989586621679058139"><span class="annot"><a href="Data.ListZipper.html#lWrite"><span class="hs-identifier hs-type">lWrite</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679058139"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058139"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058139"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-36"></span><span id="lWrite"><span class="annot"><span class="annottext">lWrite :: a -&gt; ListZipper a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lWrite"><span class="hs-identifier hs-var hs-var">lWrite</span></a></span></span><span> </span><span id="local-6989586621679058138"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058138"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-type">LZ</span></a></span><span> </span><span id="local-6989586621679058137"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058137"><span class="hs-identifier hs-var">ls</span></a></span></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679058136"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058136"><span class="hs-identifier hs-var">rs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; a -&gt; [a] -&gt; ListZipper a
+forall a. [a] -&gt; a -&gt; [a] -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-var">LZ</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058137"><span class="hs-identifier hs-var">ls</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058138"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058136"><span class="hs-identifier hs-var">rs</span></a></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- | Convert ListZipper to an array of elements</span><span>
+</span><span id="line-39"></span><span id="local-6989586621679058135"><span class="annot"><a href="Data.ListZipper.html#toList"><span class="hs-identifier hs-type">toList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058135"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679058135"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-40"></span><span id="toList"><span class="annot"><span class="annottext">toList :: ListZipper a -&gt; Int -&gt; [a]
+</span><a href="Data.ListZipper.html#toList"><span class="hs-identifier hs-var hs-var">toList</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-type">LZ</span></a></span><span> </span><span id="local-6989586621679058134"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058134"><span class="hs-identifier hs-var">ls</span></a></span></span><span> </span><span id="local-6989586621679058133"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058133"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679058132"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058132"><span class="hs-identifier hs-var">rs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679058131"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058131"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; [a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058131"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058134"><span class="hs-identifier hs-var">ls</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058133"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [a] -&gt; [a]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058131"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679058132"><span class="hs-identifier hs-var">rs</span></a></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621679058128"><span class="annot"><a href="Data.ListZipper.html#iterateTail"><span class="hs-identifier hs-type">iterateTail</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058128"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058128"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058128"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679058128"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-43"></span><span id="iterateTail"><span class="annot"><span class="annottext">iterateTail :: (a -&gt; a) -&gt; a -&gt; [a]
+</span><a href="Data.ListZipper.html#iterateTail"><span class="hs-identifier hs-var hs-var">iterateTail</span></a></span></span><span> </span><span id="local-6989586621679058126"><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679058126"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">tail</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; [a]) -&gt; (a -&gt; [a]) -&gt; a -&gt; [a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; a -&gt; [a]
+forall a. (a -&gt; a) -&gt; a -&gt; [a]
+</span><span class="hs-identifier hs-var">iterate</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679058126"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="hs-comment">-- &quot;tail&quot; will never return a bottom</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- | Generate a ListZipper from an element and a two functions - </span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- one that makes the first array, one that makes the second one </span><span>
+</span><span id="line-47"></span><span id="local-6989586621679058191"><span class="annot"><a href="Data.ListZipper.html#lGenerator"><span class="hs-identifier hs-type">lGenerator</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058191"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>     </span><span class="hs-comment">-- ^ The left generator</span><span>
+</span><span id="line-48"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058191"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>     </span><span class="hs-comment">-- ^ The right generator</span><span>
+</span><span id="line-49"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058191"><span class="hs-identifier hs-type">a</span></a></span><span>            </span><span class="hs-comment">-- ^ The focus</span><span>
+</span><span id="line-50"></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Data.ListZipper.html#ListZipper"><span class="hs-identifier hs-type">ListZipper</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058191"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-comment">-- ^ The resulting list zipper</span></span><span>
+</span><span id="line-51"></span><span id="lGenerator"><span class="annot"><span class="annottext">lGenerator :: (a -&gt; a) -&gt; (a -&gt; a) -&gt; a -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#lGenerator"><span class="hs-identifier hs-var hs-var">lGenerator</span></a></span></span><span> </span><span id="local-6989586621679058122"><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679058122"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679058121"><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679058121"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679058120"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058120"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; a -&gt; [a] -&gt; ListZipper a
+forall a. [a] -&gt; a -&gt; [a] -&gt; ListZipper a
+</span><a href="Data.ListZipper.html#LZ"><span class="hs-identifier hs-var">LZ</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; a -&gt; [a]
+forall a. (a -&gt; a) -&gt; a -&gt; [a]
+</span><a href="Data.ListZipper.html#iterateTail"><span class="hs-identifier hs-var">iterateTail</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679058122"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058120"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058120"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; a -&gt; [a]
+forall a. (a -&gt; a) -&gt; a -&gt; [a]
+</span><a href="Data.ListZipper.html#iterateTail"><span class="hs-identifier hs-var">iterateTail</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a
+</span><a href="#local-6989586621679058121"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679058120"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span></pre></body></html>

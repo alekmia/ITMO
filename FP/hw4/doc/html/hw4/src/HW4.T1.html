@@ -1,0 +1,389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">HW4.T1</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="HW4.T1.html#EvaluationError"><span class="hs-identifier">EvaluationError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier">ExceptState</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#mapExceptState"><span class="hs-identifier">mapExceptState</span></a></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#wrapExceptState"><span class="hs-identifier">wrapExceptState</span></a></span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#joinExceptState"><span class="hs-identifier">joinExceptState</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#modifyExceptState"><span class="hs-identifier">modifyExceptState</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#throwExceptState"><span class="hs-identifier">throwExceptState</span></a></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier">eval</span></a></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="HW4.Types.html"><span class="hs-identifier">HW4.Types</span></a></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">data</span><span> </span><span id="ExceptState"><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-var">ExceptState</span></a></span></span><span> </span><span id="local-6989586621679031079"><span class="annot"><a href="#local-6989586621679031079"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679031080"><span class="annot"><a href="#local-6989586621679031080"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679031078"><span class="annot"><a href="#local-6989586621679031078"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ES"><span class="annot"><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="runES"><span class="annot"><span class="annottext">ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679031080"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Except"><span class="hs-identifier hs-type">Except</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031079"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Annotated"><span class="hs-identifier hs-type">Annotated</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031080"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031078"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span id="local-6989586621679031072"><span id="local-6989586621679031073"><span id="local-6989586621679031074"><span class="annot"><a href="HW4.T1.html#mapAnnotated"><span class="hs-identifier hs-type">mapAnnotated</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679031074"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679031073"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Annotated"><span class="hs-identifier hs-type">Annotated</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031072"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031074"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Annotated"><span class="hs-identifier hs-type">Annotated</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031072"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031073"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-18"></span><span id="mapAnnotated"><span class="annot"><span class="annottext">mapAnnotated :: (a -&gt; b) -&gt; Annotated e a -&gt; Annotated e b
+</span><a href="HW4.T1.html#mapAnnotated"><span class="hs-identifier hs-var hs-var">mapAnnotated</span></a></span></span><span> </span><span id="local-6989586621679030963"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679030963"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679030962"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679030962"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-type">:#</span></a></span><span> </span><span id="local-6989586621679030960"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030960"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679030963"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679030962"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">b -&gt; e -&gt; Annotated e b
+forall e a. a -&gt; e -&gt; Annotated e a
+</span><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-var">:#</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030960"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span id="local-6989586621679031075"><span id="local-6989586621679031076"><span id="local-6989586621679031077"><span class="annot"><a href="HW4.T1.html#mapExcept"><span class="hs-identifier hs-type">mapExcept</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679031077"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679031076"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Except"><span class="hs-identifier hs-type">Except</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031075"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031077"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Except"><span class="hs-identifier hs-type">Except</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031075"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031076"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-21"></span><span id="mapExcept"><span class="annot"><span class="annottext">mapExcept :: (a -&gt; b) -&gt; Except e a -&gt; Except e b
+</span><a href="HW4.T1.html#mapExcept"><span class="hs-identifier hs-var hs-var">mapExcept</span></a></span></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span> </span><span id="local-6989586621679030957"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030957"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">e -&gt; Except e b
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030957"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-22"></span><span class="annot"><a href="HW4.T1.html#mapExcept"><span class="hs-identifier hs-var">mapExcept</span></a></span><span> </span><span id="local-6989586621679030956"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679030956"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679030954"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679030954"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; Except e b
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679030956"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679030954"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- | Maps the excepted state</span><span>
+</span><span id="line-25"></span><span id="local-6989586621679031037"><span id="local-6989586621679031038"><span id="local-6989586621679031039"><span id="local-6989586621679031040"><span class="annot"><a href="HW4.T1.html#mapExceptState"><span class="hs-identifier hs-type">mapExceptState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679031040"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679031039"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031038"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031037"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031040"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031038"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031037"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031039"><span class="hs-identifier hs-type">b</span></a></span></span></span></span></span><span>
+</span><span id="line-26"></span><span id="mapExceptState"><span class="annot"><span class="annottext">mapExceptState :: (a -&gt; b) -&gt; ExceptState e s a -&gt; ExceptState e s b
+</span><a href="HW4.T1.html#mapExceptState"><span class="hs-identifier hs-var hs-var">mapExceptState</span></a></span></span><span> </span><span id="local-6989586621679030953"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679030953"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679030952"><span class="annot"><span class="annottext">ExceptState e s a
+</span><a href="#local-6989586621679030952"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; Except e (Annotated s b)) -&gt; ExceptState e s b
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Annotated s a -&gt; Annotated s b)
+-&gt; Except e (Annotated s a) -&gt; Except e (Annotated s b)
+forall a b e. (a -&gt; b) -&gt; Except e a -&gt; Except e b
+</span><a href="HW4.T1.html#mapExcept"><span class="hs-identifier hs-var">mapExcept</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; Annotated s a -&gt; Annotated s b
+forall a b e. (a -&gt; b) -&gt; Annotated e a -&gt; Annotated e b
+</span><a href="HW4.T1.html#mapAnnotated"><span class="hs-identifier hs-var">mapAnnotated</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679030953"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Except e (Annotated s a) -&gt; Except e (Annotated s b))
+-&gt; (s -&gt; Except e (Annotated s a)) -&gt; s -&gt; Except e (Annotated s b)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+forall e s a. ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState e s a
+</span><a href="#local-6989586621679030952"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- | Wraps the excepted state</span><span>
+</span><span id="line-29"></span><span id="local-6989586621679031013"><span id="local-6989586621679031014"><span id="local-6989586621679031015"><span class="annot"><a href="HW4.T1.html#wrapExceptState"><span class="hs-identifier hs-type">wrapExceptState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679031015"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031014"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031013"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031015"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-30"></span><span id="wrapExceptState"><span class="annot"><span class="annottext">wrapExceptState :: a -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#wrapExceptState"><span class="hs-identifier hs-var hs-var">wrapExceptState</span></a></span></span><span> </span><span id="local-6989586621679030950"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679030950"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679030949"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030949"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Annotated s a -&gt; Except e (Annotated s a)
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679030950"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; s -&gt; Annotated s a
+forall e a. a -&gt; e -&gt; Annotated e a
+</span><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-var">:#</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030949"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span id="local-6989586621679031057"><span id="local-6989586621679031058"><span id="local-6989586621679031059"><span class="annot"><a href="HW4.T1.html#runJES"><span class="hs-identifier hs-type">runJES</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031059"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031058"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031059"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031058"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031057"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679031058"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Except"><span class="hs-identifier hs-type">Except</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031059"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Annotated"><span class="hs-identifier hs-type">Annotated</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031058"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031057"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-33"></span><span id="runJES"><span class="annot"><span class="annottext">runJES :: ExceptState e s (ExceptState e s a)
+-&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runJES"><span class="hs-identifier hs-var hs-var">runJES</span></a></span></span><span> </span><span id="local-6989586621679030947"><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s a)
+</span><a href="#local-6989586621679030947"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679030946"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030946"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s a)
+-&gt; s -&gt; Except e (Annotated s (ExceptState e s a))
+forall e s a. ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s a)
+</span><a href="#local-6989586621679030947"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030946"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><a href="HW4.Types.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span> </span><span id="local-6989586621679030945"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030945"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">e -&gt; Except e (Annotated s a)
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030945"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="HW4.Types.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679030944"><span class="annot"><span class="annottext">ExceptState e s a
+</span><a href="#local-6989586621679030944"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span class="annot"><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-type">:#</span></a></span><span> </span><span id="local-6989586621679030943"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030943"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+forall e s a. ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState e s a
+</span><a href="#local-6989586621679030944"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030943"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- | joins the Excepted States</span><span>
+</span><span id="line-38"></span><span id="local-6989586621679030992"><span id="local-6989586621679030993"><span id="local-6989586621679030994"><span class="annot"><a href="HW4.T1.html#joinExceptState"><span class="hs-identifier hs-type">joinExceptState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030994"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030993"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030994"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030993"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030992"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030994"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030993"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030992"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-39"></span><span id="joinExceptState"><span class="annot"><span class="annottext">joinExceptState :: ExceptState e s (ExceptState e s a) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#joinExceptState"><span class="hs-identifier hs-var hs-var">joinExceptState</span></a></span></span><span> </span><span id="local-6989586621679030942"><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s a)
+</span><a href="#local-6989586621679030942"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s a)
+-&gt; s -&gt; Except e (Annotated s a)
+forall e s a.
+ExceptState e s (ExceptState e s a)
+-&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runJES"><span class="hs-identifier hs-var">runJES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s a)
+</span><a href="#local-6989586621679030942"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | modifies the excepted state</span><span>
+</span><span id="line-42"></span><span id="local-6989586621679030984"><span id="local-6989586621679030985"><span class="annot"><a href="HW4.T1.html#modifyExceptState"><span class="hs-identifier hs-type">modifyExceptState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679030985"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679030985"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030984"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030985"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-43"></span><span id="modifyExceptState"><span class="annot"><span class="annottext">modifyExceptState :: (s -&gt; s) -&gt; ExceptState e s ()
+</span><a href="HW4.T1.html#modifyExceptState"><span class="hs-identifier hs-var hs-var">modifyExceptState</span></a></span></span><span> </span><span id="local-6989586621679030941"><span class="annot"><span class="annottext">s -&gt; s
+</span><a href="#local-6989586621679030941"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; Except e (Annotated s ())) -&gt; ExceptState e s ()
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679030940"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030940"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Annotated s () -&gt; Except e (Annotated s ())
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">() -&gt; s -&gt; Annotated s ()
+forall e a. a -&gt; e -&gt; Annotated e a
+</span><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-var">:#</span></a></span><span> </span><span class="annot"><span class="annottext">s -&gt; s
+</span><a href="#local-6989586621679030941"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679030940"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- | creates except state that always throw error</span><span>
+</span><span id="line-46"></span><span id="local-6989586621679030974"><span id="local-6989586621679030975"><span id="local-6989586621679030976"><span class="annot"><a href="HW4.T1.html#throwExceptState"><span class="hs-identifier hs-type">throwExceptState</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679030976"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030976"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030975"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030974"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-47"></span><span id="throwExceptState"><span class="annot"><span class="annottext">throwExceptState :: e -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#throwExceptState"><span class="hs-identifier hs-var hs-var">throwExceptState</span></a></span></span><span> </span><span id="local-6989586621679030939"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030939"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">s
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">e -&gt; Except e (Annotated s a)
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679030939"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span id="local-6989586621679030937"><span id="local-6989586621679030938"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679030934"><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030938"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030937"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>  </span><span id="local-6989586621679030932"><span class="annot"><span class="annottext">fmap :: (a -&gt; b) -&gt; ExceptState e s a -&gt; ExceptState e s b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; ExceptState e s a -&gt; ExceptState e s b
+forall a b e s. (a -&gt; b) -&gt; ExceptState e s a -&gt; ExceptState e s b
+</span><a href="HW4.T1.html#mapExceptState"><span class="hs-identifier hs-var">mapExceptState</span></a></span></span></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span id="local-6989586621679030930"><span id="local-6989586621679030931"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679030921"><span id="local-6989586621679030923"><span id="local-6989586621679030925"><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030931"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030930"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-53"></span><span>  </span><span id="local-6989586621679030919"><span class="annot"><span class="annottext">pure :: a -&gt; ExceptState e s a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; ExceptState e s a
+forall a e s. a -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#wrapExceptState"><span class="hs-identifier hs-var">wrapExceptState</span></a></span><span>
+</span><span id="line-54"></span><span>  </span><span id="local-6989586621679030918"><span class="annot"><span class="annottext">&lt;*&gt; :: ExceptState e s (a -&gt; b) -&gt; ExceptState e s a -&gt; ExceptState e s b
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;*&gt;)</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExceptState e s (a -&gt; b) -&gt; ExceptState e s a -&gt; ExceptState e s b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m (a -&gt; b) -&gt; m a -&gt; m b
+</span><span class="hs-identifier hs-var">Control.Monad.ap</span></span></span></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span id="local-6989586621679030915"><span id="local-6989586621679030916"><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679030909"><span id="local-6989586621679030911"><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030916"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679030915"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-57"></span><span>  </span><span id="local-6989586621679030907"><span class="annot"><span class="annottext">&gt;&gt;= :: ExceptState e s a -&gt; (a -&gt; ExceptState e s b) -&gt; ExceptState e s b
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(&gt;&gt;=)</span></span></span><span> </span><span id="local-6989586621679030906"><span class="annot"><span class="annottext">ExceptState e s a
+</span><a href="#local-6989586621679030906"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679030905"><span class="annot"><span class="annottext">a -&gt; ExceptState e s b
+</span><a href="#local-6989586621679030905"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExceptState e s (ExceptState e s b) -&gt; ExceptState e s b
+forall e s a.
+ExceptState e s (ExceptState e s a) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#joinExceptState"><span class="hs-identifier hs-var">joinExceptState</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(a -&gt; ExceptState e s b)
+-&gt; ExceptState e s a -&gt; ExceptState e s (ExceptState e s b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; ExceptState e s b
+</span><a href="#local-6989586621679030905"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState e s a
+</span><a href="#local-6989586621679030906"><span class="hs-identifier hs-var">m</span></a></span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-keyword">data</span><span> </span><span id="EvaluationError"><span class="annot"><a href="HW4.T1.html#EvaluationError"><span class="hs-identifier hs-var">EvaluationError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="DivideByZero"><span class="annot"><a href="HW4.T1.html#DivideByZero"><span class="hs-identifier hs-var">DivideByZero</span></a></span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679030898"><span id="local-6989586621679030900"><span id="local-6989586621679030902"><span class="annot"><span class="annottext">Int -&gt; EvaluationError -&gt; ShowS
+[EvaluationError] -&gt; ShowS
+EvaluationError -&gt; String
+(Int -&gt; EvaluationError -&gt; ShowS)
+-&gt; (EvaluationError -&gt; String)
+-&gt; ([EvaluationError] -&gt; ShowS)
+-&gt; Show EvaluationError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [EvaluationError] -&gt; ShowS
+$cshowList :: [EvaluationError] -&gt; ShowS
+show :: EvaluationError -&gt; String
+$cshow :: EvaluationError -&gt; String
+showsPrec :: Int -&gt; EvaluationError -&gt; ShowS
+$cshowsPrec :: Int -&gt; EvaluationError -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="annot"><a href="HW4.T1.html#binaryOper"><span class="hs-identifier hs-type">binaryOper</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Prim"><span class="hs-identifier hs-type">Prim</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="HW4.T1.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HW4.Types.html#Prim"><span class="hs-identifier hs-type">Prim</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-64"></span><span id="binaryOper"><span class="annot"><span class="annottext">binaryOper :: (Double -&gt; Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double -&gt; Double)
+-&gt; Expr
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#binaryOper"><span class="hs-identifier hs-var hs-var">binaryOper</span></a></span></span><span> </span><span id="local-6989586621679030895"><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Prim Double
+</span><a href="#local-6989586621679030895"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679030894"><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679030894"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679030893"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030893"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679030892"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030892"><span class="hs-identifier hs-var">b</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-65"></span><span>  </span><span id="local-6989586621679030891"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030891"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030893"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621679030890"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030890"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030892"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-67"></span><span>  </span><span class="annot"><span class="annottext">([Prim Double] -&gt; [Prim Double])
+-&gt; ExceptState EvaluationError [Prim Double] ()
+forall s e. (s -&gt; s) -&gt; ExceptState e s ()
+</span><a href="HW4.T1.html#modifyExceptState"><span class="hs-identifier hs-var">modifyExceptState</span></a></span><span> </span><span class="annot"><span class="annottext">(([Prim Double] -&gt; [Prim Double])
+ -&gt; ExceptState EvaluationError [Prim Double] ())
+-&gt; ([Prim Double] -&gt; [Prim Double])
+-&gt; ExceptState EvaluationError [Prim Double] ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679030889"><span class="annot"><span class="annottext">[Prim Double]
+</span><a href="#local-6989586621679030889"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Prim Double
+</span><a href="#local-6989586621679030895"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030891"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030890"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Prim Double -&gt; [Prim Double] -&gt; [Prim Double]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Prim Double]
+</span><a href="#local-6989586621679030889"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="annottext">Double -&gt; ExceptState EvaluationError [Prim Double] Double
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+</span><a href="#local-6989586621679030894"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030891"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030890"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="annot"><a href="HW4.T1.html#unaryOper"><span class="hs-identifier hs-type">unaryOper</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Prim"><span class="hs-identifier hs-type">Prim</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="HW4.T1.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HW4.Types.html#Prim"><span class="hs-identifier hs-type">Prim</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-72"></span><span id="unaryOper"><span class="annot"><span class="annottext">unaryOper :: (Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double)
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#unaryOper"><span class="hs-identifier hs-var hs-var">unaryOper</span></a></span></span><span> </span><span id="local-6989586621679030887"><span class="annot"><span class="annottext">Double -&gt; Prim Double
+</span><a href="#local-6989586621679030887"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679030886"><span class="annot"><span class="annottext">Double -&gt; Double
+</span><a href="#local-6989586621679030886"><span class="hs-identifier hs-var">g</span></a></span></span><span> </span><span id="local-6989586621679030885"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030885"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-73"></span><span>  </span><span id="local-6989586621679030884"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030884"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030885"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span class="annot"><span class="annottext">([Prim Double] -&gt; [Prim Double])
+-&gt; ExceptState EvaluationError [Prim Double] ()
+forall s e. (s -&gt; s) -&gt; ExceptState e s ()
+</span><a href="HW4.T1.html#modifyExceptState"><span class="hs-identifier hs-var">modifyExceptState</span></a></span><span> </span><span class="annot"><span class="annottext">(([Prim Double] -&gt; [Prim Double])
+ -&gt; ExceptState EvaluationError [Prim Double] ())
+-&gt; ([Prim Double] -&gt; [Prim Double])
+-&gt; ExceptState EvaluationError [Prim Double] ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679030883"><span class="annot"><span class="annottext">[Prim Double]
+</span><a href="#local-6989586621679030883"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Prim Double
+</span><a href="#local-6989586621679030887"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030884"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Prim Double -&gt; [Prim Double] -&gt; [Prim Double]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Prim Double]
+</span><a href="#local-6989586621679030883"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><span class="annottext">Double -&gt; ExceptState EvaluationError [Prim Double] Double
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Double
+</span><a href="#local-6989586621679030886"><span class="hs-identifier hs-var">g</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030884"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- | evaluates expression </span><span>
+</span><span id="line-78"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-type">eval</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="HW4.T1.html#EvaluationError"><span class="hs-identifier hs-type">EvaluationError</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="HW4.Types.html#Prim"><span class="hs-identifier hs-type">Prim</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-79"></span><span id="eval"><span class="annot"><span class="annottext">eval :: Expr -&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var hs-var">eval</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Val"><span class="hs-identifier hs-type">Val</span></a></span><span> </span><span id="local-6989586621679030881"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030881"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double -&gt; ExceptState EvaluationError [Prim Double] Double
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030881"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-80"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Op"><span class="hs-identifier hs-type">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Add"><span class="hs-identifier hs-type">Add</span></a></span><span> </span><span id="local-6989586621679030878"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030878"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679030877"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030877"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double -&gt; Double)
+-&gt; Expr
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#binaryOper"><span class="hs-identifier hs-var">binaryOper</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Prim Double
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Add"><span class="hs-identifier hs-var">Add</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(+)</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030878"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030877"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-81"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Op"><span class="hs-identifier hs-type">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Sub"><span class="hs-identifier hs-type">Sub</span></a></span><span> </span><span id="local-6989586621679030874"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030874"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679030873"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030873"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double -&gt; Double)
+-&gt; Expr
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#binaryOper"><span class="hs-identifier hs-var">binaryOper</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Prim Double
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Sub"><span class="hs-identifier hs-var">Sub</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030874"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030873"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-82"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Op"><span class="hs-identifier hs-type">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Mul"><span class="hs-identifier hs-type">Mul</span></a></span><span> </span><span id="local-6989586621679030871"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030871"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679030870"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030870"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double -&gt; Double)
+-&gt; Expr
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#binaryOper"><span class="hs-identifier hs-var">binaryOper</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Prim Double
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Mul"><span class="hs-identifier hs-var">Mul</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(*)</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030871"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030870"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Op"><span class="hs-identifier hs-type">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Div"><span class="hs-identifier hs-type">Div</span></a></span><span> </span><span id="local-6989586621679030867"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030867"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679030866"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030866"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-85"></span><span>  </span><span id="local-6989586621679030865"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030865"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030867"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span id="local-6989586621679030864"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030864"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030866"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030864"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">EvaluationError -&gt; ExceptState EvaluationError [Prim Double] ()
+forall e s a. e -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#throwExceptState"><span class="hs-identifier hs-var">throwExceptState</span></a></span><span> </span><span class="annot"><span class="annottext">EvaluationError
+</span><a href="HW4.T1.html#DivideByZero"><span class="hs-identifier hs-var">DivideByZero</span></a></span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">([Prim Double] -&gt; [Prim Double])
+-&gt; ExceptState EvaluationError [Prim Double] ()
+forall s e. (s -&gt; s) -&gt; ExceptState e s ()
+</span><a href="HW4.T1.html#modifyExceptState"><span class="hs-identifier hs-var">modifyExceptState</span></a></span><span> </span><span class="annot"><span class="annottext">(([Prim Double] -&gt; [Prim Double])
+ -&gt; ExceptState EvaluationError [Prim Double] ())
+-&gt; ([Prim Double] -&gt; [Prim Double])
+-&gt; ExceptState EvaluationError [Prim Double] ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679030863"><span class="annot"><span class="annottext">[Prim Double]
+</span><a href="#local-6989586621679030863"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Prim Double
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Div"><span class="hs-identifier hs-var">Div</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030865"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030864"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Prim Double -&gt; [Prim Double] -&gt; [Prim Double]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Prim Double]
+</span><a href="#local-6989586621679030863"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-89"></span><span>  </span><span class="annot"><span class="annottext">Double -&gt; ExceptState EvaluationError [Prim Double] Double
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030865"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679030864"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Op"><span class="hs-identifier hs-type">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Abs"><span class="hs-identifier hs-type">Abs</span></a></span><span> </span><span id="local-6989586621679030860"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030860"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double)
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#unaryOper"><span class="hs-identifier hs-var">unaryOper</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Prim Double
+forall a. a -&gt; Prim a
+</span><a href="HW4.Types.html#Abs"><span class="hs-identifier hs-var">Abs</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030860"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-92"></span><span class="annot"><a href="HW4.T1.html#eval"><span class="hs-identifier hs-var">eval</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Op"><span class="hs-identifier hs-type">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.Types.html#Sgn"><span class="hs-identifier hs-type">Sgn</span></a></span><span> </span><span id="local-6989586621679030857"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030857"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Prim Double)
+-&gt; (Double -&gt; Double)
+-&gt; Expr
+-&gt; ExceptState EvaluationError [Prim Double] Double
+</span><a href="HW4.T1.html#unaryOper"><span class="hs-identifier hs-var">unaryOper</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Prim Double
+forall a. a -&gt; Prim a
+</span><a href="HW4.Types.html#Sgn"><span class="hs-identifier hs-var">Sgn</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">signum</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679030857"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span></pre></body></html>

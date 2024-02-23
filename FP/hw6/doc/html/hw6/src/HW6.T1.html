@@ -1,0 +1,474 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">HW6.T1</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="HW6.T1.html#BucketsArray"><span class="hs-identifier">BucketsArray</span></a></span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier">CHT</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#newCHT"><span class="hs-identifier">newCHT</span></a></span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#getCHT"><span class="hs-identifier">getCHT</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#putCHT"><span class="hs-identifier">putCHT</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#sizeCHT"><span class="hs-identifier">sizeCHT</span></a></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#initCapacity"><span class="hs-identifier">initCapacity</span></a></span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW6.T1.html#loadFactor"><span class="hs-identifier">loadFactor</span></a></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.Classy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">STM</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">MonadSTM</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">MonadConc</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">atomically</span></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Concurrent.Classy.STM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TArray</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">TVar</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">newTVar</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">readTVar</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">writeTVar</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">readTVarConc</span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Array.MArray</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">newArray</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">getBounds</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">readArray</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">writeArray</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">getElems</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Hashable</span></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">when</span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bifunctor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">second</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- | Capacity of our CHT at the beginning</span><span>
+</span><span id="line-22"></span><span class="annot"><a href="HW6.T1.html#initCapacity"><span class="hs-identifier hs-type">initCapacity</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-23"></span><span id="initCapacity"><span class="annot"><span class="annottext">initCapacity :: Int
+</span><a href="HW6.T1.html#initCapacity"><span class="hs-identifier hs-var hs-var">initCapacity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">16</span></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- | Percentage of capacity, at which we should resize our CHT</span><span>
+</span><span id="line-26"></span><span class="annot"><a href="HW6.T1.html#loadFactor"><span class="hs-identifier hs-type">loadFactor</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span>
+</span><span id="line-27"></span><span id="loadFactor"><span class="annot"><span class="annottext">loadFactor :: Double
+</span><a href="HW6.T1.html#loadFactor"><span class="hs-identifier hs-var hs-var">loadFactor</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">0.75</span></span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- | A bucket of our CHT that stores elements as (key, value) </span><span>
+</span><span id="line-30"></span><span class="hs-keyword">type</span><span> </span><span id="Bucket"><span class="annot"><a href="HW6.T1.html#Bucket"><span class="hs-identifier hs-var">Bucket</span></a></span></span><span> </span><span id="local-6989586621679058368"><span class="annot"><a href="#local-6989586621679058368"><span class="hs-identifier hs-type">k</span></a></span></span><span> </span><span id="local-6989586621679058367"><span class="annot"><a href="#local-6989586621679058367"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058368"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679058367"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- | TArray of buckets</span><span>
+</span><span id="line-33"></span><span class="hs-keyword">type</span><span> </span><span id="BucketsArray"><span class="annot"><a href="HW6.T1.html#BucketsArray"><span class="hs-identifier hs-var">BucketsArray</span></a></span></span><span> </span><span id="local-6989586621679058366"><span class="annot"><a href="#local-6989586621679058366"><span class="hs-identifier hs-type">stm</span></a></span></span><span> </span><span id="local-6989586621679058365"><span class="annot"><a href="#local-6989586621679058365"><span class="hs-identifier hs-type">k</span></a></span></span><span> </span><span id="local-6989586621679058364"><span class="annot"><a href="#local-6989586621679058364"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TArray</span></span><span> </span><span class="annot"><a href="#local-6989586621679058366"><span class="hs-identifier hs-type">stm</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW6.T1.html#Bucket"><span class="hs-identifier hs-type">Bucket</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058365"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058364"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- | CHT. Can call needed methods to get its BucketsArray or size</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">data</span><span> </span><span id="CHT"><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-var">CHT</span></a></span></span><span> </span><span id="local-6989586621679058451"><span class="annot"><a href="#local-6989586621679058451"><span class="hs-identifier hs-type">stm</span></a></span></span><span> </span><span id="local-6989586621679058450"><span class="annot"><a href="#local-6989586621679058450"><span class="hs-identifier hs-type">k</span></a></span></span><span> </span><span id="local-6989586621679058449"><span class="annot"><a href="#local-6989586621679058449"><span class="hs-identifier hs-type">v</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CHT"><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-var">CHT</span></a></span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="chtBuckets"><span class="annot"><span class="annottext">CHT stm k v -&gt; TVar stm (BucketsArray stm k v)
+</span><a href="HW6.T1.html#chtBuckets"><span class="hs-identifier hs-var hs-var">chtBuckets</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679058451"><span class="hs-identifier hs-type">stm</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW6.T1.html#BucketsArray"><span class="hs-identifier hs-type">BucketsArray</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058451"><span class="hs-identifier hs-type">stm</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058450"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058449"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="chtSize"><span class="annot"><span class="annottext">CHT stm k v -&gt; TVar stm Int
+</span><a href="HW6.T1.html#chtSize"><span class="hs-identifier hs-var hs-var">chtSize</span></a></span></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TVar</span></span><span> </span><span class="annot"><a href="#local-6989586621679058451"><span class="hs-identifier hs-type">stm</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | Create a new CHT with capacity of initCapacity </span><span>
+</span><span id="line-42"></span><span id="local-6989586621679058358"><span id="local-6989586621679058359"><span id="local-6989586621679058360"><span class="annot"><a href="HW6.T1.html#newCHT"><span class="hs-identifier hs-type">newCHT</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadConc</span></span><span> </span><span class="annot"><a href="#local-6989586621679058360"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058360"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-type">CHT</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679058360"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679058359"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058358"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-43"></span><span id="newCHT"><span class="annot"><span class="annottext">newCHT :: m (CHT (STM m) k v)
+</span><a href="HW6.T1.html#newCHT"><span class="hs-identifier hs-var hs-var">newCHT</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM m (CHT (STM m) k v) -&gt; m (CHT (STM m) k v)
+forall (m :: * -&gt; *) a. MonadConc m =&gt; STM m a -&gt; m a
+</span><span class="hs-identifier hs-var">atomically</span></span><span> </span><span class="annot"><span class="annottext">(STM m (CHT (STM m) k v) -&gt; m (CHT (STM m) k v))
+-&gt; STM m (CHT (STM m) k v) -&gt; m (CHT (STM m) k v)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-44"></span><span>  </span><span id="local-6989586621679058357"><span class="annot"><span class="annottext">TVar (STM m) (BucketsArray (STM m) k v)
+</span><a href="#local-6989586621679058357"><span class="hs-identifier hs-var">buckets</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; Bucket k v -&gt; STM m (BucketsArray (STM m) k v)
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+(i, i) -&gt; e -&gt; m (a i e)
+</span><span class="hs-identifier hs-var">newArray</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="HW6.T1.html#initCapacity"><span class="hs-identifier hs-var">initCapacity</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058355"><span id="local-6989586621679058356"><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW6.T1.html#Bucket"><span class="hs-identifier hs-type">Bucket</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058356"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058355"><span class="hs-identifier hs-type">v</span></a></span></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">STM m (BucketsArray (STM m) k v)
+-&gt; (BucketsArray (STM m) k v
+    -&gt; STM m (TVar (STM m) (BucketsArray (STM m) k v)))
+-&gt; STM m (TVar (STM m) (BucketsArray (STM m) k v))
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">BucketsArray (STM m) k v
+-&gt; STM m (TVar (STM m) (BucketsArray (STM m) k v))
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; a -&gt; stm (TVar stm a)
+</span><span class="hs-identifier hs-var">newTVar</span></span><span>
+</span><span id="line-45"></span><span>  </span><span id="local-6989586621679058354"><span class="annot"><span class="annottext">TVar (STM m) Int
+</span><a href="#local-6989586621679058354"><span class="hs-identifier hs-var">size</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; STM m (TVar (STM m) Int)
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; a -&gt; stm (TVar stm a)
+</span><span class="hs-identifier hs-var">newTVar</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; STM m (CHT (STM m) k v)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TVar (STM m) (BucketsArray (STM m) k v)
+-&gt; TVar (STM m) Int -&gt; CHT (STM m) k v
+forall (stm :: * -&gt; *) k v.
+TVar stm (BucketsArray stm k v) -&gt; TVar stm Int -&gt; CHT stm k v
+</span><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-var">CHT</span></a></span><span> </span><span class="annot"><span class="annottext">TVar (STM m) (BucketsArray (STM m) k v)
+</span><a href="#local-6989586621679058357"><span class="hs-identifier hs-var">buckets</span></a></span><span> </span><span class="annot"><span class="annottext">TVar (STM m) Int
+</span><a href="#local-6989586621679058354"><span class="hs-identifier hs-var">size</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- | Gets value from CHT by value. If found - returns 'Just v', else - 'Nothing'</span><span>
+</span><span id="line-49"></span><span id="local-6989586621679058351"><span id="local-6989586621679058352"><span id="local-6989586621679058353"><span class="annot"><a href="HW6.T1.html#getCHT"><span class="hs-identifier hs-type">getCHT</span></a></span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadConc</span></span><span> </span><span class="annot"><a href="#local-6989586621679058353"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-51"></span><span>     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679058352"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-52"></span><span>     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="#local-6989586621679058352"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-53"></span><span>     </span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058352"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-type">CHT</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679058353"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679058352"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058351"><span class="hs-identifier hs-type">v</span></a></span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058353"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679058351"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-57"></span><span id="getCHT"><span class="annot"><span class="annottext">getCHT :: k -&gt; CHT (STM m) k v -&gt; m (Maybe v)
+</span><a href="HW6.T1.html#getCHT"><span class="hs-identifier hs-var hs-var">getCHT</span></a></span></span><span> </span><span id="local-6989586621679058350"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058350"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621679058349"><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058349"><span class="hs-identifier hs-var">cnt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM m (Maybe v) -&gt; m (Maybe v)
+forall (m :: * -&gt; *) a. MonadConc m =&gt; STM m a -&gt; m a
+</span><span class="hs-identifier hs-var">atomically</span></span><span> </span><span class="annot"><span class="annottext">(STM m (Maybe v) -&gt; m (Maybe v)) -&gt; STM m (Maybe v) -&gt; m (Maybe v)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-58"></span><span>  </span><span id="local-6989586621679058348"><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058348"><span class="hs-identifier hs-var">bucketsArray</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TVar (STM m) (TArray (STM m) Int [(k, v)])
+-&gt; STM m (TArray (STM m) Int [(k, v)])
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; TVar stm a -&gt; stm a
+</span><span class="hs-identifier hs-var">readTVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; TVar (STM m) (TArray (STM m) Int [(k, v)])
+forall (stm :: * -&gt; *) k v.
+CHT stm k v -&gt; TVar stm (BucketsArray stm k v)
+</span><a href="HW6.T1.html#chtBuckets"><span class="hs-identifier hs-var hs-var">chtBuckets</span></a></span><span> </span><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058349"><span class="hs-identifier hs-var">cnt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>  </span><span id="local-6989586621679058347"><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679058347"><span class="hs-identifier hs-var">tuple</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)] -&gt; STM m (Int, Int)
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; m (i, i)
+</span><span class="hs-identifier hs-var">getBounds</span></span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058348"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span>
+</span><span id="line-60"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058346"><span class="annot"><span class="annottext">index :: Int
+</span><a href="#local-6989586621679058346"><span class="hs-identifier hs-var hs-var">index</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">k -&gt; Int
+forall a. Hashable a =&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">hash</span></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058350"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mod`</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679058347"><span class="hs-identifier hs-var">tuple</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679058347"><span class="hs-identifier hs-var">tuple</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>  </span><span id="local-6989586621679058342"><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058342"><span class="hs-identifier hs-var">bucket</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)] -&gt; Int -&gt; STM m [(k, v)]
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; i -&gt; m e
+</span><span class="hs-identifier hs-var">readArray</span></span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058348"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058346"><span class="hs-identifier hs-var">index</span></a></span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><span class="annottext">Maybe v -&gt; STM m (Maybe v)
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k -&gt; [(k, v)] -&gt; Maybe v
+forall k v. Eq k =&gt; k -&gt; [(k, v)] -&gt; Maybe v
+</span><a href="HW6.T1.html#getInBucket"><span class="hs-identifier hs-var">getInBucket</span></a></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058350"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058342"><span class="hs-identifier hs-var">bucket</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span id="local-6989586621679058430"><span id="local-6989586621679058431"><span class="annot"><a href="HW6.T1.html#getInBucket"><span class="hs-identifier hs-type">getInBucket</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679058431"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058431"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058431"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679058430"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679058430"><span class="hs-identifier hs-type">v</span></a></span></span></span><span>
+</span><span id="line-65"></span><span id="getInBucket"><span class="annot"><span class="annottext">getInBucket :: k -&gt; [(k, v)] -&gt; Maybe v
+</span><a href="HW6.T1.html#getInBucket"><span class="hs-identifier hs-var hs-var">getInBucket</span></a></span></span><span> </span><span id="local-6989586621679058340"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058340"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058339"><span class="annot"><span class="annottext">(k, v)
+</span><a href="#local-6989586621679058339"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679058338"><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058338"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; k
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(k, v)
+</span><a href="#local-6989586621679058339"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">k -&gt; k -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058340"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">v -&gt; Maybe v
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(k, v) -&gt; v
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(k, v)
+</span><a href="#local-6989586621679058339"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">k -&gt; [(k, v)] -&gt; Maybe v
+forall k v. Eq k =&gt; k -&gt; [(k, v)] -&gt; Maybe v
+</span><a href="HW6.T1.html#getInBucket"><span class="hs-identifier hs-var">getInBucket</span></a></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058340"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058338"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-66"></span><span class="annot"><a href="HW6.T1.html#getInBucket"><span class="hs-identifier hs-var">getInBucket</span></a></span><span> </span><span class="annot"><span class="annottext">k
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe v
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span id="local-6989586621679058418"><span id="local-6989586621679058419"><span class="annot"><a href="HW6.T1.html#changeInBucket"><span class="hs-identifier hs-type">changeInBucket</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679058419"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058419"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679058418"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058419"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679058418"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679058419"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679058418"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span></span></span><span>
+</span><span id="line-69"></span><span id="changeInBucket"><span class="annot"><span class="annottext">changeInBucket :: (k, v) -&gt; [(k, v)] -&gt; (Bool, [(k, v)])
+</span><a href="HW6.T1.html#changeInBucket"><span class="hs-identifier hs-var hs-var">changeInBucket</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058336"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058336"><span class="hs-identifier hs-var">k</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679058335"><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058335"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058334"><span class="annot"><span class="annottext">(k, v)
+</span><a href="#local-6989586621679058334"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679058333"><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058333"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; k
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(k, v)
+</span><a href="#local-6989586621679058334"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">k -&gt; k -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058336"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058336"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058335"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; [(k, v)] -&gt; [(k, v)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058333"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">([(k, v)] -&gt; [(k, v)]) -&gt; (Bool, [(k, v)]) -&gt; (Bool, [(k, v)])
+forall (p :: * -&gt; * -&gt; *) b c a.
+Bifunctor p =&gt;
+(b -&gt; c) -&gt; p a b -&gt; p a c
+</span><span class="hs-identifier hs-var">second</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(k, v)
+</span><a href="#local-6989586621679058334"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; [(k, v)] -&gt; [(k, v)]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Bool, [(k, v)])
+</span><a href="#local-6989586621679058332"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-72"></span><span>    </span><span id="local-6989586621679058332"><span class="annot"><span class="annottext">next :: (Bool, [(k, v)])
+</span><a href="#local-6989586621679058332"><span class="hs-identifier hs-var hs-var">next</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; [(k, v)] -&gt; (Bool, [(k, v)])
+forall k v. Eq k =&gt; (k, v) -&gt; [(k, v)] -&gt; (Bool, [(k, v)])
+</span><a href="HW6.T1.html#changeInBucket"><span class="hs-identifier hs-var">changeInBucket</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058336"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058335"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058333"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="HW6.T1.html#changeInBucket"><span class="hs-identifier hs-var">changeInBucket</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058331"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058331"><span class="hs-identifier hs-var">k</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679058330"><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058330"><span class="hs-identifier hs-var">v</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058331"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058330"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- | Adds an element to our CHT. </span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- Calculates the index in BucketsArrat using 'hash k % capacity' </span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- and adds it to the corresponding bucket </span><span>
+</span><span id="line-78"></span><span id="local-6989586621679058327"><span id="local-6989586621679058328"><span id="local-6989586621679058329"><span class="annot"><a href="HW6.T1.html#putCHT"><span class="hs-identifier hs-type">putCHT</span></a></span><span>
+</span><span id="line-79"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadConc</span></span><span> </span><span class="annot"><a href="#local-6989586621679058329"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-80"></span><span>     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679058328"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-81"></span><span>     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="#local-6989586621679058328"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-82"></span><span>     </span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058328"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058327"><span class="hs-identifier hs-type">v</span></a></span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-type">CHT</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679058329"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679058328"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058327"><span class="hs-identifier hs-type">v</span></a></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058329"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-87"></span><span id="putCHT"><span class="annot"><span class="annottext">putCHT :: k -&gt; v -&gt; CHT (STM m) k v -&gt; m ()
+</span><a href="HW6.T1.html#putCHT"><span class="hs-identifier hs-var hs-var">putCHT</span></a></span></span><span> </span><span id="local-6989586621679058326"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058326"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span id="local-6989586621679058325"><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058325"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span id="local-6989586621679058324"><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058324"><span class="hs-identifier hs-var">cnt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">STM m () -&gt; m ()
+forall (m :: * -&gt; *) a. MonadConc m =&gt; STM m a -&gt; m a
+</span><span class="hs-identifier hs-var">atomically</span></span><span> </span><span class="annot"><span class="annottext">(STM m () -&gt; m ()) -&gt; STM m () -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-88"></span><span>  </span><span id="local-6989586621679058323"><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058323"><span class="hs-identifier hs-var">bucketsArray</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TVar (STM m) (TArray (STM m) Int [(k, v)])
+-&gt; STM m (TArray (STM m) Int [(k, v)])
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; TVar stm a -&gt; stm a
+</span><span class="hs-identifier hs-var">readTVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; TVar (STM m) (TArray (STM m) Int [(k, v)])
+forall (stm :: * -&gt; *) k v.
+CHT stm k v -&gt; TVar stm (BucketsArray stm k v)
+</span><a href="HW6.T1.html#chtBuckets"><span class="hs-identifier hs-var hs-var">chtBuckets</span></a></span><span> </span><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058324"><span class="hs-identifier hs-var">cnt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span>  </span><span id="local-6989586621679058322"><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679058322"><span class="hs-identifier hs-var">tuple</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)] -&gt; STM m (Int, Int)
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; m (i, i)
+</span><span class="hs-identifier hs-var">getBounds</span></span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058323"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058321"><span class="annot"><span class="annottext">capacity :: Int
+</span><a href="#local-6989586621679058321"><span class="hs-identifier hs-var hs-var">capacity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679058322"><span class="hs-identifier hs-var">tuple</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; Int
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679058322"><span class="hs-identifier hs-var">tuple</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058320"><span class="annot"><span class="annottext">index :: Int
+</span><a href="#local-6989586621679058320"><span class="hs-identifier hs-var hs-var">index</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">k -&gt; Int
+forall a. Hashable a =&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">hash</span></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058326"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mod`</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058321"><span class="hs-identifier hs-var">capacity</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span id="local-6989586621679058319"><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058319"><span class="hs-identifier hs-var">bucket</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)] -&gt; Int -&gt; STM m [(k, v)]
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; i -&gt; m e
+</span><span class="hs-identifier hs-var">readArray</span></span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058323"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058320"><span class="hs-identifier hs-var">index</span></a></span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058318"><span class="annot"><span class="annottext">changes :: (Bool, [(k, v)])
+</span><a href="#local-6989586621679058318"><span class="hs-identifier hs-var hs-var">changes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; [(k, v)] -&gt; (Bool, [(k, v)])
+forall k v. Eq k =&gt; (k, v) -&gt; [(k, v)] -&gt; (Bool, [(k, v)])
+</span><a href="HW6.T1.html#changeInBucket"><span class="hs-identifier hs-var">changeInBucket</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058326"><span class="hs-identifier hs-var">k</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058325"><span class="hs-identifier hs-var">v</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(k, v)]
+</span><a href="#local-6989586621679058319"><span class="hs-identifier hs-var">bucket</span></a></span><span>
+</span><span id="line-94"></span><span>  </span><span id="local-6989586621679058317"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058317"><span class="hs-identifier hs-var">size</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TVar (STM m) Int -&gt; STM m Int
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; TVar stm a -&gt; stm a
+</span><span class="hs-identifier hs-var">readTVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; TVar (STM m) Int
+forall (stm :: * -&gt; *) k v. CHT stm k v -&gt; TVar stm Int
+</span><a href="HW6.T1.html#chtSize"><span class="hs-identifier hs-var hs-var">chtSize</span></a></span><span> </span><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058324"><span class="hs-identifier hs-var">cnt</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058316"><span class="annot"><span class="annottext">newSize :: Int
+</span><a href="#local-6989586621679058316"><span class="hs-identifier hs-var hs-var">newSize</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(Bool, [(k, v)]) -&gt; Bool
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(Bool, [(k, v)])
+</span><a href="#local-6989586621679058318"><span class="hs-identifier hs-var">changes</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058317"><span class="hs-identifier hs-var">size</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058317"><span class="hs-identifier hs-var">size</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)] -&gt; Int -&gt; [(k, v)] -&gt; STM m ()
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; i -&gt; e -&gt; m ()
+</span><span class="hs-identifier hs-var">writeArray</span></span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058323"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058320"><span class="hs-identifier hs-var">index</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Bool, [(k, v)]) -&gt; [(k, v)]
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(Bool, [(k, v)])
+</span><a href="#local-6989586621679058318"><span class="hs-identifier hs-var">changes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>  </span><span class="annot"><span class="annottext">Bool -&gt; STM m () -&gt; STM m ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058316"><span class="hs-identifier hs-var">newSize</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058321"><span class="hs-identifier hs-var">capacity</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="HW6.T1.html#loadFactor"><span class="hs-identifier hs-var">loadFactor</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(STM m () -&gt; STM m ()) -&gt; STM m () -&gt; STM m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-98"></span><span>    </span><span id="local-6989586621679058313"><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058313"><span class="hs-identifier hs-var">newTArray</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+-&gt; Int -&gt; STM m (TArray (STM m) Int [(k, v)])
+forall (m :: * -&gt; *) k v.
+(MonadSTM m, Eq k, Hashable k) =&gt;
+TArray m Int (Bucket k v) -&gt; Int -&gt; m (TArray m Int (Bucket k v))
+</span><a href="HW6.T1.html#createNewTArray"><span class="hs-identifier hs-var">createNewTArray</span></a></span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058323"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058321"><span class="hs-identifier hs-var">capacity</span></a></span><span>
+</span><span id="line-99"></span><span>    </span><span class="annot"><span class="annottext">TVar (STM m) (TArray (STM m) Int [(k, v)])
+-&gt; TArray (STM m) Int [(k, v)] -&gt; STM m ()
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; TVar stm a -&gt; a -&gt; stm ()
+</span><span class="hs-identifier hs-var">writeTVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; TVar (STM m) (TArray (STM m) Int [(k, v)])
+forall (stm :: * -&gt; *) k v.
+CHT stm k v -&gt; TVar stm (BucketsArray stm k v)
+</span><a href="HW6.T1.html#chtBuckets"><span class="hs-identifier hs-var hs-var">chtBuckets</span></a></span><span> </span><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058324"><span class="hs-identifier hs-var">cnt</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">TArray (STM m) Int [(k, v)]
+</span><a href="#local-6989586621679058313"><span class="hs-identifier hs-var">newTArray</span></a></span><span>
+</span><span id="line-100"></span><span>  </span><span class="annot"><span class="annottext">TVar (STM m) Int -&gt; Int -&gt; STM m ()
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; TVar stm a -&gt; a -&gt; stm ()
+</span><span class="hs-identifier hs-var">writeTVar</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; TVar (STM m) Int
+forall (stm :: * -&gt; *) k v. CHT stm k v -&gt; TVar stm Int
+</span><a href="HW6.T1.html#chtSize"><span class="hs-identifier hs-var hs-var">chtSize</span></a></span><span> </span><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058324"><span class="hs-identifier hs-var">cnt</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058316"><span class="hs-identifier hs-var">newSize</span></a></span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span id="local-6989586621679058403"><span id="local-6989586621679058404"><span id="local-6989586621679058405"><span class="annot"><a href="HW6.T1.html#createNewTArray"><span class="hs-identifier hs-type">createNewTArray</span></a></span><span> </span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadSTM</span></span><span> </span><span class="annot"><a href="#local-6989586621679058405"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-104"></span><span>     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Eq</span></span><span> </span><span class="annot"><a href="#local-6989586621679058404"><span class="hs-identifier hs-type">k</span></a></span><span>
+</span><span id="line-105"></span><span>     </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Hashable</span></span><span> </span><span class="annot"><a href="#local-6989586621679058404"><span class="hs-identifier hs-type">k</span></a></span><span class="hs-special">)</span><span> </span><span>
+</span><span id="line-106"></span><span>     </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TArray</span></span><span> </span><span class="annot"><a href="#local-6989586621679058405"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW6.T1.html#Bucket"><span class="hs-identifier hs-type">Bucket</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058404"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058403"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span> </span><span>
+</span><span id="line-107"></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span>
+</span><span id="line-108"></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058405"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">TArray</span></span><span> </span><span class="annot"><a href="#local-6989586621679058405"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW6.T1.html#Bucket"><span class="hs-identifier hs-type">Bucket</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058404"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058403"><span class="hs-identifier hs-type">v</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-109"></span><span id="createNewTArray"><span class="annot"><span class="annottext">createNewTArray :: TArray m Int (Bucket k v) -&gt; Int -&gt; m (TArray m Int (Bucket k v))
+</span><a href="HW6.T1.html#createNewTArray"><span class="hs-identifier hs-var hs-var">createNewTArray</span></a></span></span><span> </span><span id="local-6989586621679058311"><span class="annot"><span class="annottext">TArray m Int (Bucket k v)
+</span><a href="#local-6989586621679058311"><span class="hs-identifier hs-var">bucketsArray</span></a></span></span><span> </span><span id="local-6989586621679058310"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058310"><span class="hs-identifier hs-var">capacity</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-110"></span><span>    </span><span id="local-6989586621679058309"><span class="annot"><span class="annottext">TVar m (TArray m Int (Bucket k v))
+</span><a href="#local-6989586621679058309"><span class="hs-identifier hs-var">bucketsArrayToAdd</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; Bucket k v -&gt; m (TArray m Int (Bucket k v))
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+(i, i) -&gt; e -&gt; m (a i e)
+</span><span class="hs-identifier hs-var">newArray</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058310"><span class="hs-identifier hs-var">capacity</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679058306"><span id="local-6989586621679058307"><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW6.T1.html#Bucket"><span class="hs-identifier hs-type">Bucket</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058307"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058306"><span class="hs-identifier hs-type">v</span></a></span></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m (TArray m Int (Bucket k v))
+-&gt; (TArray m Int (Bucket k v)
+    -&gt; m (TVar m (TArray m Int (Bucket k v))))
+-&gt; m (TVar m (TArray m Int (Bucket k v)))
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v) -&gt; m (TVar m (TArray m Int (Bucket k v)))
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; a -&gt; stm (TVar stm a)
+</span><span class="hs-identifier hs-var">newTVar</span></span><span>
+</span><span id="line-111"></span><span>    </span><span id="local-6989586621679058305"><span class="annot"><span class="annottext">TArray m Int (Bucket k v)
+</span><a href="#local-6989586621679058305"><span class="hs-identifier hs-var">newTArray</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TVar m (TArray m Int (Bucket k v)) -&gt; m (TArray m Int (Bucket k v))
+forall (stm :: * -&gt; *) a. MonadSTM stm =&gt; TVar stm a -&gt; stm a
+</span><span class="hs-identifier hs-var">readTVar</span></span><span> </span><span class="annot"><span class="annottext">TVar m (TArray m Int (Bucket k v))
+</span><a href="#local-6989586621679058309"><span class="hs-identifier hs-var">bucketsArrayToAdd</span></a></span><span>
+</span><span id="line-112"></span><span>    </span><span id="local-6989586621679058304"><span class="annot"><span class="annottext">[Bucket k v]
+</span><a href="#local-6989586621679058304"><span class="hs-identifier hs-var">elements</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v) -&gt; m [Bucket k v]
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; m [e]
+</span><span class="hs-identifier hs-var">getElems</span></span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v)
+</span><a href="#local-6989586621679058311"><span class="hs-identifier hs-var">bucketsArray</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><span class="annottext">(Bucket k v -&gt; m ()) -&gt; [Bucket k v] -&gt; m ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((k, v) -&gt; m ()) -&gt; Bucket k v -&gt; m ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m ()
+</span><span class="hs-identifier hs-var">mapM_</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679058302"><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058302"><span class="hs-identifier hs-var">key</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679058301"><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058301"><span class="hs-identifier hs-var">value</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-114"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058300"><span class="annot"><span class="annottext">indexToAdd :: Int
+</span><a href="#local-6989586621679058300"><span class="hs-identifier hs-var hs-var">indexToAdd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">k -&gt; Int
+forall a. Hashable a =&gt; a -&gt; Int
+</span><span class="hs-identifier hs-var">hash</span></span><span> </span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058302"><span class="hs-identifier hs-var">key</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">`mod`</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058310"><span class="hs-identifier hs-var">capacity</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>      </span><span id="local-6989586621679058299"><span class="annot"><span class="annottext">Bucket k v
+</span><a href="#local-6989586621679058299"><span class="hs-identifier hs-var">bucketToAdd</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v) -&gt; Int -&gt; m (Bucket k v)
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; i -&gt; m e
+</span><span class="hs-identifier hs-var">readArray</span></span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v)
+</span><a href="#local-6989586621679058305"><span class="hs-identifier hs-var">newTArray</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058300"><span class="hs-identifier hs-var">indexToAdd</span></a></span><span>
+</span><span id="line-116"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679058298"><span class="annot"><span class="annottext">changesToAdd :: (Bool, Bucket k v)
+</span><a href="#local-6989586621679058298"><span class="hs-identifier hs-var hs-var">changesToAdd</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(k, v) -&gt; Bucket k v -&gt; (Bool, Bucket k v)
+forall k v. Eq k =&gt; (k, v) -&gt; [(k, v)] -&gt; (Bool, [(k, v)])
+</span><a href="HW6.T1.html#changeInBucket"><span class="hs-identifier hs-var">changeInBucket</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">k
+</span><a href="#local-6989586621679058302"><span class="hs-identifier hs-var">key</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">v
+</span><a href="#local-6989586621679058301"><span class="hs-identifier hs-var">value</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bucket k v
+</span><a href="#local-6989586621679058299"><span class="hs-identifier hs-var">bucketToAdd</span></a></span><span>
+</span><span id="line-117"></span><span>      </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v) -&gt; Int -&gt; Bucket k v -&gt; m ()
+forall (a :: * -&gt; * -&gt; *) e (m :: * -&gt; *) i.
+(MArray a e m, Ix i) =&gt;
+a i e -&gt; i -&gt; e -&gt; m ()
+</span><span class="hs-identifier hs-var">writeArray</span></span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v)
+</span><a href="#local-6989586621679058305"><span class="hs-identifier hs-var">newTArray</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679058300"><span class="hs-identifier hs-var">indexToAdd</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Bool, Bucket k v) -&gt; Bucket k v
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(Bool, Bucket k v)
+</span><a href="#local-6989586621679058298"><span class="hs-identifier hs-var">changesToAdd</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Bucket k v]
+</span><a href="#local-6989586621679058304"><span class="hs-identifier hs-var">elements</span></a></span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v) -&gt; m (TArray m Int (Bucket k v))
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">TArray m Int (Bucket k v)
+</span><a href="#local-6989586621679058305"><span class="hs-identifier hs-var">newTArray</span></a></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- | Returns size of our CHT - number of elements</span><span>
+</span><span id="line-121"></span><span id="local-6989586621679058295"><span id="local-6989586621679058296"><span id="local-6989586621679058297"><span class="annot"><a href="HW6.T1.html#sizeCHT"><span class="hs-identifier hs-type">sizeCHT</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadConc</span></span><span> </span><span class="annot"><a href="#local-6989586621679058297"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="HW6.T1.html#CHT"><span class="hs-identifier hs-type">CHT</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">STM</span></span><span> </span><span class="annot"><a href="#local-6989586621679058297"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679058296"><span class="hs-identifier hs-type">k</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679058295"><span class="hs-identifier hs-type">v</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679058297"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span></span></span><span>
+</span><span id="line-122"></span><span id="sizeCHT"><span class="annot"><span class="annottext">sizeCHT :: CHT (STM m) k v -&gt; m Int
+</span><a href="HW6.T1.html#sizeCHT"><span class="hs-identifier hs-var hs-var">sizeCHT</span></a></span></span><span> </span><span id="local-6989586621679058294"><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058294"><span class="hs-identifier hs-var">cnt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span class="annot"><span class="annottext">TVar (STM m) Int -&gt; m Int
+forall (m :: * -&gt; *) a. MonadConc m =&gt; TVar (STM m) a -&gt; m a
+</span><span class="hs-identifier hs-var">readTVarConc</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CHT (STM m) k v -&gt; TVar (STM m) Int
+forall (stm :: * -&gt; *) k v. CHT stm k v -&gt; TVar stm Int
+</span><a href="HW6.T1.html#chtSize"><span class="hs-identifier hs-var hs-var">chtSize</span></a></span><span> </span><span class="annot"><span class="annottext">CHT (STM m) k v
+</span><a href="#local-6989586621679058294"><span class="hs-identifier hs-var">cnt</span></a></span><span class="hs-special">)</span></pre></body></html>

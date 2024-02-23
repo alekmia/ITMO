@@ -1,0 +1,644 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE GeneralisedNewtypeDeriving #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">HW4.T2</span><span>
+</span><span id="line-5"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="HW4.T2.html#ParseError"><span class="hs-identifier">ParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-6"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T2.html#runP"><span class="hs-identifier">runP</span></a></span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T2.html#pChar"><span class="hs-identifier">pChar</span></a></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T2.html#parseError"><span class="hs-identifier">parseError</span></a></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T2.html#parseExpr"><span class="hs-identifier">parseExpr</span></a></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Numeric.Natural</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Natural</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="HW4.Types.html"><span class="hs-identifier">HW4.Types</span></a></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="HW4.T1.html"><span class="hs-identifier">HW4.T1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier">ExceptState</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="HW4.T1.html#runES"><span class="hs-identifier">runES</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="ParseError"><span class="annot"><a href="HW4.T2.html#ParseError"><span class="hs-identifier hs-var">ParseError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ErrorAtPos"><span class="annot"><a href="HW4.T2.html#ErrorAtPos"><span class="hs-identifier hs-var">ErrorAtPos</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span id="local-6989586621679031224"><span id="local-6989586621679031226"><span id="local-6989586621679031228"><span class="annot"><span class="annottext">Int -&gt; ParseError -&gt; ShowS
+[ParseError] -&gt; ShowS
+ParseError -&gt; String
+(Int -&gt; ParseError -&gt; ShowS)
+-&gt; (ParseError -&gt; String)
+-&gt; ([ParseError] -&gt; ShowS)
+-&gt; Show ParseError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+showList :: [ParseError] -&gt; ShowS
+$cshowList :: [ParseError] -&gt; ShowS
+show :: ParseError -&gt; String
+$cshow :: ParseError -&gt; String
+showsPrec :: Int -&gt; ParseError -&gt; ShowS
+$cshowsPrec :: Int -&gt; ParseError -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">newtype</span><span> </span><span id="Parser"><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-var">Parser</span></a></span></span><span> </span><span id="local-6989586621679031275"><span class="annot"><a href="#local-6989586621679031275"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="P"><span class="annot"><a href="HW4.T2.html#P"><span class="hs-identifier hs-var">P</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T1.html#ExceptState"><span class="hs-identifier hs-type">ExceptState</span></a></span><span> </span><span class="annot"><a href="HW4.T2.html#ParseError"><span class="hs-identifier hs-type">ParseError</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Natural</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679031275"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">newtype</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679031218"><span id="local-6989586621679031220"><span class="annot"><span class="annottext">a -&gt; Parser b -&gt; Parser a
+(a -&gt; b) -&gt; Parser a -&gt; Parser b
+(forall a b. (a -&gt; b) -&gt; Parser a -&gt; Parser b)
+-&gt; (forall a b. a -&gt; Parser b -&gt; Parser a) -&gt; Functor Parser
+forall a b. a -&gt; Parser b -&gt; Parser a
+forall a b. (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+&lt;$ :: a -&gt; Parser b -&gt; Parser a
+$c&lt;$ :: forall a b. a -&gt; Parser b -&gt; Parser a
+fmap :: (a -&gt; b) -&gt; Parser a -&gt; Parser b
+$cfmap :: forall a b. (a -&gt; b) -&gt; Parser a -&gt; Parser b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679031206"><span id="local-6989586621679031208"><span id="local-6989586621679031210"><span id="local-6989586621679031212"><span id="local-6989586621679031214"><span class="annot"><span class="annottext">Functor Parser
+a -&gt; Parser a
+Functor Parser
+-&gt; (forall a. a -&gt; Parser a)
+-&gt; (forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b)
+-&gt; (forall a b c.
+    (a -&gt; b -&gt; c) -&gt; Parser a -&gt; Parser b -&gt; Parser c)
+-&gt; (forall a b. Parser a -&gt; Parser b -&gt; Parser b)
+-&gt; (forall a b. Parser a -&gt; Parser b -&gt; Parser a)
+-&gt; Applicative Parser
+Parser a -&gt; Parser b -&gt; Parser b
+Parser a -&gt; Parser b -&gt; Parser a
+Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+(a -&gt; b -&gt; c) -&gt; Parser a -&gt; Parser b -&gt; Parser c
+forall a. a -&gt; Parser a
+forall a b. Parser a -&gt; Parser b -&gt; Parser a
+forall a b. Parser a -&gt; Parser b -&gt; Parser b
+forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+forall a b c. (a -&gt; b -&gt; c) -&gt; Parser a -&gt; Parser b -&gt; Parser c
+forall (f :: * -&gt; *).
+Functor f
+-&gt; (forall a. a -&gt; f a)
+-&gt; (forall a b. f (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b c. (a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c)
+-&gt; (forall a b. f a -&gt; f b -&gt; f b)
+-&gt; (forall a b. f a -&gt; f b -&gt; f a)
+-&gt; Applicative f
+&lt;* :: Parser a -&gt; Parser b -&gt; Parser a
+$c&lt;* :: forall a b. Parser a -&gt; Parser b -&gt; Parser a
+*&gt; :: Parser a -&gt; Parser b -&gt; Parser b
+$c*&gt; :: forall a b. Parser a -&gt; Parser b -&gt; Parser b
+liftA2 :: (a -&gt; b -&gt; c) -&gt; Parser a -&gt; Parser b -&gt; Parser c
+$cliftA2 :: forall a b c. (a -&gt; b -&gt; c) -&gt; Parser a -&gt; Parser b -&gt; Parser c
+&lt;*&gt; :: Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+$c&lt;*&gt; :: forall a b. Parser (a -&gt; b) -&gt; Parser a -&gt; Parser b
+pure :: a -&gt; Parser a
+$cpure :: forall a. a -&gt; Parser a
+$cp1Applicative :: Functor Parser
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Applicative</span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679031198"><span id="local-6989586621679031200"><span id="local-6989586621679031202"><span class="annot"><span class="annottext">Applicative Parser
+a -&gt; Parser a
+Applicative Parser
+-&gt; (forall a b. Parser a -&gt; (a -&gt; Parser b) -&gt; Parser b)
+-&gt; (forall a b. Parser a -&gt; Parser b -&gt; Parser b)
+-&gt; (forall a. a -&gt; Parser a)
+-&gt; Monad Parser
+Parser a -&gt; (a -&gt; Parser b) -&gt; Parser b
+Parser a -&gt; Parser b -&gt; Parser b
+forall a. a -&gt; Parser a
+forall a b. Parser a -&gt; Parser b -&gt; Parser b
+forall a b. Parser a -&gt; (a -&gt; Parser b) -&gt; Parser b
+forall (m :: * -&gt; *).
+Applicative m
+-&gt; (forall a b. m a -&gt; (a -&gt; m b) -&gt; m b)
+-&gt; (forall a b. m a -&gt; m b -&gt; m b)
+-&gt; (forall a. a -&gt; m a)
+-&gt; Monad m
+return :: a -&gt; Parser a
+$creturn :: forall a. a -&gt; Parser a
+&gt;&gt; :: Parser a -&gt; Parser b -&gt; Parser b
+$c&gt;&gt; :: forall a b. Parser a -&gt; Parser b -&gt; Parser b
+&gt;&gt;= :: Parser a -&gt; (a -&gt; Parser b) -&gt; Parser b
+$c&gt;&gt;= :: forall a b. Parser a -&gt; (a -&gt; Parser b) -&gt; Parser b
+$cp1Monad :: Applicative Parser
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Monad</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- | Applies given parser on given string and returns result</span><span>
+</span><span id="line-27"></span><span id="local-6989586621679031251"><span class="annot"><a href="HW4.T2.html#runP"><span class="hs-identifier hs-type">runP</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031251"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Except"><span class="hs-identifier hs-type">Except</span></a></span><span> </span><span class="annot"><a href="HW4.T2.html#ParseError"><span class="hs-identifier hs-type">ParseError</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031251"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-28"></span><span id="runP"><span class="annot"><span class="annottext">runP :: Parser a -&gt; String -&gt; Except ParseError a
+</span><a href="HW4.T2.html#runP"><span class="hs-identifier hs-var hs-var">runP</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T2.html#P"><span class="hs-identifier hs-type">P</span></a></span><span> </span><span id="local-6989586621679031196"><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+</span><a href="#local-6989586621679031196"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679031195"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031195"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+-&gt; (Natural, String)
+-&gt; Except ParseError (Annotated (Natural, String) a)
+forall e s a. ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+</span><a href="#local-6989586621679031196"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><span class="hs-number">0</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031195"><span class="hs-identifier hs-var">str</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><a href="HW4.Types.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span> </span><span id="local-6989586621679031193"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679031193"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; Except ParseError a
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679031193"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><a href="HW4.Types.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679031191"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679031191"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-type">:#</span></a></span><span> </span><span class="annot"><span class="annottext">(Natural, String)
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; Except ParseError a
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679031191"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- Just an example of parser that may be useful</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- in the implementation of 'parseExpr'</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- | Parser that consumes one char. Was given in HW files as an example</span><span>
+</span><span id="line-35"></span><span class="annot"><a href="HW4.T2.html#pChar"><span class="hs-identifier hs-type">pChar</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-36"></span><span id="pChar"><span class="annot"><span class="annottext">pChar :: Parser Char
+</span><a href="HW4.T2.html#pChar"><span class="hs-identifier hs-var hs-var">pChar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) Char -&gt; Parser Char
+forall a. ExceptState ParseError (Natural, String) a -&gt; Parser a
+</span><a href="HW4.T2.html#P"><span class="hs-identifier hs-var">P</span></a></span><span> </span><span class="annot"><span class="annottext">(ExceptState ParseError (Natural, String) Char -&gt; Parser Char)
+-&gt; ExceptState ParseError (Natural, String) Char -&gt; Parser Char
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">((Natural, String)
+ -&gt; Except ParseError (Annotated (Natural, String) Char))
+-&gt; ExceptState ParseError (Natural, String) Char
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="annot"><span class="annottext">(((Natural, String)
+  -&gt; Except ParseError (Annotated (Natural, String) Char))
+ -&gt; ExceptState ParseError (Natural, String) Char)
+-&gt; ((Natural, String)
+    -&gt; Except ParseError (Annotated (Natural, String) Char))
+-&gt; ExceptState ParseError (Natural, String) Char
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679031188"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031188"><span class="hs-identifier hs-var">pos</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679031187"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031187"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031187"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-38"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; Except ParseError (Annotated (Natural, String) Char)
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; ParseError
+</span><a href="HW4.T2.html#ErrorAtPos"><span class="hs-identifier hs-var">ErrorAtPos</span></a></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031188"><span class="hs-identifier hs-var">pos</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679031186"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031186"><span class="hs-identifier hs-var">c</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679031185"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031185"><span class="hs-identifier hs-var">cs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Annotated (Natural, String) Char
+-&gt; Except ParseError (Annotated (Natural, String) Char)
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031186"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; (Natural, String) -&gt; Annotated (Natural, String) Char
+forall e a. a -&gt; e -&gt; Annotated e a
+</span><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-var">:#</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031188"><span class="hs-identifier hs-var">pos</span></a></span><span> </span><span class="annot"><span class="annottext">Natural -&gt; Natural -&gt; Natural
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><span class="hs-number">1</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031185"><span class="hs-identifier hs-var">cs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | Parser that always throws an error</span><span>
+</span><span id="line-42"></span><span id="local-6989586621679031183"><span class="annot"><a href="HW4.T2.html#parseError"><span class="hs-identifier hs-type">parseError</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679031183"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-43"></span><span id="parseError"><span class="annot"><span class="annottext">parseError :: Parser a
+</span><a href="HW4.T2.html#parseError"><span class="hs-identifier hs-var hs-var">parseError</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a -&gt; Parser a
+forall a. ExceptState ParseError (Natural, String) a -&gt; Parser a
+</span><a href="HW4.T2.html#P"><span class="hs-identifier hs-var">P</span></a></span><span> </span><span class="annot"><span class="annottext">(ExceptState ParseError (Natural, String) a -&gt; Parser a)
+-&gt; ExceptState ParseError (Natural, String) a -&gt; Parser a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">((Natural, String)
+ -&gt; Except ParseError (Annotated (Natural, String) a))
+-&gt; ExceptState ParseError (Natural, String) a
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="annot"><span class="annottext">(((Natural, String)
+  -&gt; Except ParseError (Annotated (Natural, String) a))
+ -&gt; ExceptState ParseError (Natural, String) a)
+-&gt; ((Natural, String)
+    -&gt; Except ParseError (Annotated (Natural, String) a))
+-&gt; ExceptState ParseError (Natural, String) a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679031182"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031182"><span class="hs-identifier hs-var">pos</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; Except ParseError (Annotated (Natural, String) a)
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; ParseError
+</span><a href="HW4.T2.html#ErrorAtPos"><span class="hs-identifier hs-var">ErrorAtPos</span></a></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031182"><span class="hs-identifier hs-var">pos</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679031175"><span id="local-6989586621679031177"><span class="annot"><span class="hs-identifier hs-type">Alternative</span></span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-46"></span><span>  </span><span id="local-6989586621679031173"><span class="annot"><span class="annottext">empty :: Parser a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">empty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser a
+forall a. Parser a
+</span><a href="HW4.T2.html#parseError"><span class="hs-identifier hs-var">parseError</span></a></span><span>
+</span><span id="line-47"></span><span>  </span><span id="local-6989586621679031171"><span class="annot"><span class="annottext">&lt;|&gt; :: Parser a -&gt; Parser a -&gt; Parser a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;|&gt;)</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T2.html#P"><span class="hs-identifier hs-type">P</span></a></span><span> </span><span id="local-6989586621679031169"><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+</span><a href="#local-6989586621679031169"><span class="hs-identifier hs-var">p</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="HW4.T2.html#P"><span class="hs-identifier hs-type">P</span></a></span><span> </span><span id="local-6989586621679031168"><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+</span><a href="#local-6989586621679031168"><span class="hs-identifier hs-var">q</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a -&gt; Parser a
+forall a. ExceptState ParseError (Natural, String) a -&gt; Parser a
+</span><a href="HW4.T2.html#P"><span class="hs-identifier hs-var">P</span></a></span><span> </span><span class="annot"><span class="annottext">(ExceptState ParseError (Natural, String) a -&gt; Parser a)
+-&gt; ExceptState ParseError (Natural, String) a -&gt; Parser a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">((Natural, String)
+ -&gt; Except ParseError (Annotated (Natural, String) a))
+-&gt; ExceptState ParseError (Natural, String) a
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="annot"><span class="annottext">(((Natural, String)
+  -&gt; Except ParseError (Annotated (Natural, String) a))
+ -&gt; ExceptState ParseError (Natural, String) a)
+-&gt; ((Natural, String)
+    -&gt; Except ParseError (Annotated (Natural, String) a))
+-&gt; ExceptState ParseError (Natural, String) a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679031167"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031167"><span class="hs-identifier hs-var">pos</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679031166"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031166"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+-&gt; (Natural, String)
+-&gt; Except ParseError (Annotated (Natural, String) a)
+forall e s a. ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+</span><a href="#local-6989586621679031169"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031167"><span class="hs-identifier hs-var">pos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031166"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-49"></span><span>      </span><span class="annot"><a href="HW4.Types.html#Error"><span class="hs-identifier hs-type">Error</span></a></span><span> </span><span class="annot"><span class="annottext">ParseError
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+-&gt; (Natural, String)
+-&gt; Except ParseError (Annotated (Natural, String) a)
+forall e s a. ExceptState e s a -&gt; s -&gt; Except e (Annotated s a)
+</span><a href="HW4.T1.html#runES"><span class="hs-identifier hs-var hs-var">runES</span></a></span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) a
+</span><a href="#local-6989586621679031168"><span class="hs-identifier hs-var">q</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031167"><span class="hs-identifier hs-var">pos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031166"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>      </span><span class="annot"><a href="HW4.Types.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679031165"><span class="annot"><span class="annottext">Annotated (Natural, String) a
+</span><a href="#local-6989586621679031165"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Annotated (Natural, String) a
+-&gt; Except ParseError (Annotated (Natural, String) a)
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">Annotated (Natural, String) a
+</span><a href="#local-6989586621679031165"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- No metohds</span><span>
+</span><span id="line-54"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679031159"><span id="local-6989586621679031161"><span class="annot"><span class="hs-identifier hs-type">MonadPlus</span></span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span></span></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-comment">{-|
+  Takes in a string and parses it. Returns the result which is 
+  Either 'Error' and tells the position of failure
+  Either 'Success' and the parsed expression.
+
+  Production rules used as the grammar: 
+
+  parserE  -&gt; parserT parserE' 
+  
+  parserE' -&gt; + parserT parserE' | - parserT parserE' | epsilon
+  
+  parserT  -&gt; parserF parserT'
+  
+  parserT' -&gt; * parserF parserT' | / parserF parserT' | epsilon
+  
+  parserF  -&gt; ( parserE ) | int
+-}</span><span>
+</span><span id="line-73"></span><span class="annot"><a href="HW4.T2.html#parseExpr"><span class="hs-identifier hs-type">parseExpr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.Types.html#Except"><span class="hs-identifier hs-type">Except</span></a></span><span> </span><span class="annot"><a href="HW4.T2.html#ParseError"><span class="hs-identifier hs-type">ParseError</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-74"></span><span id="parseExpr"><span class="annot"><span class="annottext">parseExpr :: String -&gt; Except ParseError Expr
+</span><a href="HW4.T2.html#parseExpr"><span class="hs-identifier hs-var hs-var">parseExpr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; String -&gt; Except ParseError Expr
+forall a. Parser a -&gt; String -&gt; Except ParseError a
+</span><a href="HW4.T2.html#runP"><span class="hs-identifier hs-var">runP</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parser"><span class="hs-identifier hs-var">parser</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="annot"><a href="HW4.T2.html#parser"><span class="hs-identifier hs-type">parser</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-77"></span><span id="parser"><span class="annot"><span class="annottext">parser :: Parser Expr
+</span><a href="HW4.T2.html#parser"><span class="hs-identifier hs-var hs-var">parser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-78"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-79"></span><span>  </span><span id="local-6989586621679031155"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031155"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parserE"><span class="hs-identifier hs-var">parserE</span></a></span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#pEof"><span class="hs-identifier hs-var">pEof</span></a></span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031155"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="HW4.T2.html#parserE"><span class="hs-identifier hs-type">parserE</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-85"></span><span id="parserE"><span class="annot"><span class="annottext">parserE :: Parser Expr
+</span><a href="HW4.T2.html#parserE"><span class="hs-identifier hs-var hs-var">parserE</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-86"></span><span>  </span><span id="local-6989586621679031152"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031152"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parserT"><span class="hs-identifier hs-var">parserT</span></a></span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+</span><a href="HW4.T2.html#parserE%27"><span class="hs-identifier hs-var">parserE'</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031152"><span class="hs-identifier hs-var">val</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; Parser Expr -&gt; Parser Expr
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031152"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="annot"><a href="HW4.T2.html#parserE%27"><span class="hs-identifier hs-type">parserE'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-90"></span><span id="parserE%27"><span class="annot"><span class="annottext">parserE' :: Expr -&gt; Parser Expr
+</span><a href="HW4.T2.html#parserE%27"><span class="hs-identifier hs-var hs-var">parserE'</span></a></span></span><span> </span><span id="local-6989586621679031149"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031149"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-91"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span id="local-6989586621679031148"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031148"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Parser Char
+</span><a href="HW4.T2.html#parseOpCheck"><span class="hs-identifier hs-var">parseOpCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'+'</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Parser Char
+</span><a href="HW4.T2.html#parseOpCheck"><span class="hs-identifier hs-var">parseOpCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'-'</span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-94"></span><span>  </span><span id="local-6989586621679031146"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031146"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parserT"><span class="hs-identifier hs-var">parserT</span></a></span><span>
+</span><span id="line-95"></span><span>  </span><span id="local-6989586621679031145"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031145"><span class="hs-identifier hs-var">te'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031148"><span class="hs-identifier hs-var">op</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-96"></span><span>    </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'+'</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prim Expr -&gt; Expr
+</span><a href="HW4.Types.html#Op"><span class="hs-identifier hs-var">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Expr -&gt; Expr -&gt; Prim Expr
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Add"><span class="hs-identifier hs-var">Add</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031149"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031146"><span class="hs-identifier hs-var">val</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'-'</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prim Expr -&gt; Expr
+</span><a href="HW4.Types.html#Op"><span class="hs-identifier hs-var">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Expr -&gt; Expr -&gt; Prim Expr
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Sub"><span class="hs-identifier hs-var">Sub</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031149"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031146"><span class="hs-identifier hs-var">val</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+forall a. Parser a
+</span><a href="HW4.T2.html#parseError"><span class="hs-identifier hs-var">parseError</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+</span><a href="HW4.T2.html#parserE%27"><span class="hs-identifier hs-var">parserE'</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031145"><span class="hs-identifier hs-var">te'</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; Parser Expr -&gt; Parser Expr
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031145"><span class="hs-identifier hs-var">te'</span></a></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="annot"><a href="HW4.T2.html#parserT"><span class="hs-identifier hs-type">parserT</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-102"></span><span id="parserT"><span class="annot"><span class="annottext">parserT :: Parser Expr
+</span><a href="HW4.T2.html#parserT"><span class="hs-identifier hs-var hs-var">parserT</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-103"></span><span>  </span><span id="local-6989586621679031141"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031141"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parserF"><span class="hs-identifier hs-var">parserF</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+</span><a href="HW4.T2.html#parserT%27"><span class="hs-identifier hs-var">parserT'</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031141"><span class="hs-identifier hs-var">val</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; Parser Expr -&gt; Parser Expr
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031141"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="annot"><a href="HW4.T2.html#parserT%27"><span class="hs-identifier hs-type">parserT'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-107"></span><span id="parserT%27"><span class="annot"><span class="annottext">parserT' :: Expr -&gt; Parser Expr
+</span><a href="HW4.T2.html#parserT%27"><span class="hs-identifier hs-var hs-var">parserT'</span></a></span></span><span> </span><span id="local-6989586621679031138"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031138"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-108"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-109"></span><span>  </span><span id="local-6989586621679031137"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031137"><span class="hs-identifier hs-var">op</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Parser Char
+</span><a href="HW4.T2.html#parseOpCheck"><span class="hs-identifier hs-var">parseOpCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'*'</span></span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser Char -&gt; Parser Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Parser Char
+</span><a href="HW4.T2.html#parseOpCheck"><span class="hs-identifier hs-var">parseOpCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'/'</span></span><span>
+</span><span id="line-110"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-111"></span><span>  </span><span id="local-6989586621679031136"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031136"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parserF"><span class="hs-identifier hs-var">parserF</span></a></span><span>
+</span><span id="line-112"></span><span>  </span><span id="local-6989586621679031135"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031135"><span class="hs-identifier hs-var">ft'</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031137"><span class="hs-identifier hs-var">op</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'*'</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prim Expr -&gt; Expr
+</span><a href="HW4.Types.html#Op"><span class="hs-identifier hs-var">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Expr -&gt; Expr -&gt; Prim Expr
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Mul"><span class="hs-identifier hs-var">Mul</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031138"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031136"><span class="hs-identifier hs-var">val</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>    </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'/'</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Prim Expr -&gt; Expr
+</span><a href="HW4.Types.html#Op"><span class="hs-identifier hs-var">Op</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Expr -&gt; Expr -&gt; Prim Expr
+forall a. a -&gt; a -&gt; Prim a
+</span><a href="HW4.Types.html#Div"><span class="hs-identifier hs-var">Div</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031138"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031136"><span class="hs-identifier hs-var">val</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-115"></span><span>    </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+forall a. Parser a
+</span><a href="HW4.T2.html#parseError"><span class="hs-identifier hs-var">parseError</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+</span><a href="HW4.T2.html#parserT%27"><span class="hs-identifier hs-var">parserT'</span></a></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031135"><span class="hs-identifier hs-var">ft'</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; Parser Expr -&gt; Parser Expr
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031135"><span class="hs-identifier hs-var">ft'</span></a></span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="annot"><a href="HW4.T2.html#parserF"><span class="hs-identifier hs-type">parserF</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-120"></span><span id="parserF"><span class="annot"><span class="annottext">parserF :: Parser Expr
+</span><a href="HW4.T2.html#parserF"><span class="hs-identifier hs-var hs-var">parserF</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parseInBrackets"><span class="hs-identifier hs-var">parseInBrackets</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; Parser Expr -&gt; Parser Expr
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parseDouble"><span class="hs-identifier hs-var">parseDouble</span></a></span><span> </span><span class="annot"><span class="annottext">Parser Expr -&gt; Parser Expr -&gt; Parser Expr
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parseInt"><span class="hs-identifier hs-var">parseInt</span></a></span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span class="annot"><a href="HW4.T2.html#parseInBrackets"><span class="hs-identifier hs-type">parseInBrackets</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-123"></span><span id="parseInBrackets"><span class="annot"><span class="annottext">parseInBrackets :: Parser Expr
+</span><a href="HW4.T2.html#parseInBrackets"><span class="hs-identifier hs-var hs-var">parseInBrackets</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-124"></span><span>  </span><span class="annot"><span class="annottext">Char -&gt; Parser ()
+</span><a href="HW4.T2.html#parseSyntaxCheck"><span class="hs-identifier hs-var">parseSyntaxCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'('</span></span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-126"></span><span>  </span><span id="local-6989586621679031128"><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031128"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser Expr
+</span><a href="HW4.T2.html#parserE"><span class="hs-identifier hs-var">parserE</span></a></span><span>
+</span><span id="line-127"></span><span>  </span><span class="annot"><span class="annottext">Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var">parseSpaces</span></a></span><span>
+</span><span id="line-128"></span><span>  </span><span class="annot"><span class="annottext">Char -&gt; Parser ()
+</span><a href="HW4.T2.html#parseSyntaxCheck"><span class="hs-identifier hs-var">parseSyntaxCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">')'</span></span><span>
+</span><span id="line-129"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Expr
+</span><a href="#local-6989586621679031128"><span class="hs-identifier hs-var">val</span></a></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="annot"><a href="HW4.T2.html#parseSyntaxCheck"><span class="hs-identifier hs-type">parseSyntaxCheck</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-132"></span><span id="parseSyntaxCheck"><span class="annot"><span class="annottext">parseSyntaxCheck :: Char -&gt; Parser ()
+</span><a href="HW4.T2.html#parseSyntaxCheck"><span class="hs-identifier hs-var hs-var">parseSyntaxCheck</span></a></span></span><span> </span><span id="local-6989586621679031127"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031127"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Char -&gt; Parser Char
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; (a -&gt; Bool) -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">mfilter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031127"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser Char
+</span><a href="HW4.T2.html#pChar"><span class="hs-identifier hs-var">pChar</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="annot"><a href="HW4.T2.html#parseOpCheck"><span class="hs-identifier hs-type">parseOpCheck</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-135"></span><span id="parseOpCheck"><span class="annot"><span class="annottext">parseOpCheck :: Char -&gt; Parser Char
+</span><a href="HW4.T2.html#parseOpCheck"><span class="hs-identifier hs-var hs-var">parseOpCheck</span></a></span></span><span> </span><span id="local-6989586621679031124"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031124"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Char -&gt; Parser Char
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; (a -&gt; Bool) -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">mfilter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031124"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Parser Char
+</span><a href="HW4.T2.html#pChar"><span class="hs-identifier hs-var">pChar</span></a></span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span class="annot"><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-type">parseSpaces</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-138"></span><span id="parseSpaces"><span class="annot"><span class="annottext">parseSpaces :: Parser ()
+</span><a href="HW4.T2.html#parseSpaces"><span class="hs-identifier hs-var hs-var">parseSpaces</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser String -&gt; Parser ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parser Char -&gt; Parser String
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Char -&gt; Parser Char
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; (a -&gt; Bool) -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">mfilter</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Data.Char.isSpace</span></span><span> </span><span class="annot"><span class="annottext">Parser Char
+</span><a href="HW4.T2.html#pChar"><span class="hs-identifier hs-var">pChar</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span class="annot"><a href="HW4.T2.html#parseInt"><span class="hs-identifier hs-type">parseInt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-141"></span><span id="parseInt"><span class="annot"><span class="annottext">parseInt :: Parser Expr
+</span><a href="HW4.T2.html#parseInt"><span class="hs-identifier hs-var hs-var">parseInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-142"></span><span>  </span><span id="local-6989586621679031121"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031121"><span class="hs-identifier hs-var">val</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser String
+</span><a href="HW4.T2.html#parseIntAsString"><span class="hs-identifier hs-var">parseIntAsString</span></a></span><span>
+</span><span id="line-143"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Expr
+</span><a href="HW4.Types.html#Val"><span class="hs-identifier hs-var">Val</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+</span><a href="HW4.T2.html#stringToInt"><span class="hs-identifier hs-var">stringToInt</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031121"><span class="hs-identifier hs-var">val</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="annot"><a href="HW4.T2.html#parseDouble"><span class="hs-identifier hs-type">parseDouble</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="HW4.Types.html#Expr"><span class="hs-identifier hs-type">Expr</span></a></span><span>
+</span><span id="line-146"></span><span id="parseDouble"><span class="annot"><span class="annottext">parseDouble :: Parser Expr
+</span><a href="HW4.T2.html#parseDouble"><span class="hs-identifier hs-var hs-var">parseDouble</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-147"></span><span>  </span><span id="local-6989586621679031117"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031117"><span class="hs-identifier hs-var">val1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser String
+</span><a href="HW4.T2.html#parseIntAsString"><span class="hs-identifier hs-var">parseIntAsString</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="annot"><span class="annottext">Char -&gt; Parser ()
+</span><a href="HW4.T2.html#parseSyntaxCheck"><span class="hs-identifier hs-var">parseSyntaxCheck</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span>
+</span><span id="line-149"></span><span>  </span><span id="local-6989586621679031116"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031116"><span class="hs-identifier hs-var">val2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Parser String
+</span><a href="HW4.T2.html#parseIntAsString"><span class="hs-identifier hs-var">parseIntAsString</span></a></span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679031115"><span class="annot"><span class="annottext">a :: Double
+</span><a href="#local-6989586621679031115"><span class="hs-identifier hs-var hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+</span><a href="HW4.T2.html#stringToInt"><span class="hs-identifier hs-var">stringToInt</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031117"><span class="hs-identifier hs-var">val1</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-151"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679031114"><span class="annot"><span class="annottext">b :: Double
+</span><a href="#local-6989586621679031114"><span class="hs-identifier hs-var hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+</span><a href="HW4.T2.html#stringToInt"><span class="hs-identifier hs-var">stringToInt</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031116"><span class="hs-identifier hs-var">val2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679031113"><span class="annot"><span class="annottext">l :: Double
+</span><a href="#local-6989586621679031113"><span class="hs-identifier hs-var hs-var">l</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031116"><span class="hs-identifier hs-var">val2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-153"></span><span>  </span><span class="annot"><span class="annottext">Expr -&gt; Parser Expr
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Expr
+</span><a href="HW4.Types.html#Val"><span class="hs-identifier hs-var">Val</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679031115"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679031114"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">10</span></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Floating a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">**</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679031113"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-154"></span><span>
+</span><span id="line-155"></span><span class="annot"><a href="HW4.T2.html#parseIntAsString"><span class="hs-identifier hs-type">parseIntAsString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-156"></span><span id="parseIntAsString"><span class="annot"><span class="annottext">parseIntAsString :: Parser String
+</span><a href="HW4.T2.html#parseIntAsString"><span class="hs-identifier hs-var hs-var">parseIntAsString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser Char -&gt; Parser String
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
+</span><span class="hs-identifier hs-var">some</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Parser Char -&gt; Parser Char
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; (a -&gt; Bool) -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">mfilter</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Data.Char.isDigit</span></span><span> </span><span class="annot"><span class="annottext">Parser Char
+</span><a href="HW4.T2.html#pChar"><span class="hs-identifier hs-var">pChar</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-157"></span><span>
+</span><span id="line-158"></span><span class="annot"><a href="HW4.T2.html#stringToInt"><span class="hs-identifier hs-type">stringToInt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-159"></span><span id="stringToInt"><span class="annot"><span class="annottext">stringToInt :: String -&gt; Int
+</span><a href="HW4.T2.html#stringToInt"><span class="hs-identifier hs-var hs-var">stringToInt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Char -&gt; Int) -&gt; Int -&gt; String -&gt; Int
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldl</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679031106"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679031106"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span id="local-6989586621679031105"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031105"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679031106"><span class="hs-identifier hs-var">res</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">10</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Int
+</span><span class="hs-identifier hs-var">Data.Char.digitToInt</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679031105"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span class="annot"><a href="HW4.T2.html#pEof"><span class="hs-identifier hs-type">pEof</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="HW4.T2.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span id="pEof"><span class="annot"><span class="annottext">pEof :: Parser ()
+</span><a href="HW4.T2.html#pEof"><span class="hs-identifier hs-var hs-var">pEof</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ExceptState ParseError (Natural, String) () -&gt; Parser ()
+forall a. ExceptState ParseError (Natural, String) a -&gt; Parser a
+</span><a href="HW4.T2.html#P"><span class="hs-identifier hs-var">P</span></a></span><span> </span><span class="annot"><span class="annottext">(ExceptState ParseError (Natural, String) () -&gt; Parser ())
+-&gt; ExceptState ParseError (Natural, String) () -&gt; Parser ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">((Natural, String)
+ -&gt; Except ParseError (Annotated (Natural, String) ()))
+-&gt; ExceptState ParseError (Natural, String) ()
+forall e s a. (s -&gt; Except e (Annotated s a)) -&gt; ExceptState e s a
+</span><a href="HW4.T1.html#ES"><span class="hs-identifier hs-var">ES</span></a></span><span> </span><span class="annot"><span class="annottext">(((Natural, String)
+  -&gt; Except ParseError (Annotated (Natural, String) ()))
+ -&gt; ExceptState ParseError (Natural, String) ())
+-&gt; ((Natural, String)
+    -&gt; Except ParseError (Annotated (Natural, String) ()))
+-&gt; ExceptState ParseError (Natural, String) ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679031102"><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031102"><span class="hs-identifier hs-var">pos</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679031101"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031101"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-163"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031101"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-164"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Annotated (Natural, String) ()
+-&gt; Except ParseError (Annotated (Natural, String) ())
+forall e a. a -&gt; Except e a
+</span><a href="HW4.Types.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">() -&gt; (Natural, String) -&gt; Annotated (Natural, String) ()
+forall e a. a -&gt; e -&gt; Annotated e a
+</span><a href="HW4.Types.html#%3A%23"><span class="hs-operator hs-var">:#</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031102"><span class="hs-identifier hs-var">pos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679031101"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-165"></span><span>    </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; Except ParseError (Annotated (Natural, String) ())
+forall e a. e -&gt; Except e a
+</span><a href="HW4.Types.html#Error"><span class="hs-identifier hs-var">Error</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Natural -&gt; ParseError
+</span><a href="HW4.T2.html#ErrorAtPos"><span class="hs-identifier hs-var">ErrorAtPos</span></a></span><span> </span><span class="annot"><span class="annottext">Natural
+</span><a href="#local-6989586621679031102"><span class="hs-identifier hs-var">pos</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-166"></span></pre></body></html>
